@@ -1674,6 +1674,7 @@ typedef struct layerinfo {
     unsigned int order2: 1;			/* Layer's data are order 2 bezier splines (truetype) rather than order 3 (postscript) */
 						/* In all glyphs in the font */
     unsigned int ticked: 1;
+    uint32 color;
 } LayerInfo;
 
 /* Baseline data from the 'BASE' table */
