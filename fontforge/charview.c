@@ -2440,7 +2440,7 @@ static void CVExpose(CharView *cv, GWindow pixmap, GEvent *event ) {
 	    /*  images before the fill... */
 	    CVDrawLayerSplineSet(cv,pixmap,&cv->b.sc->layers[layer],
 		    cv->b.sc->parent->layers[layer].color,
-		    false,&clip);
+		    false,&clip,false);
 	    for ( rf=cv->b.sc->layers[layer].refs; rf!=NULL; rf = rf->next ) {
 		if ( /* cv->b.drawmode==dm_back &&*/ cv->showrefnames )
 		    CVDrawRefName(cv,pixmap,rf,0);
