@@ -1847,7 +1847,9 @@ static int SFD_Dump(FILE *sfd,SplineFont *sf,EncMap *map,EncMap *normal,
     for ( i=0; i<sf->layer_cnt; ++i ) {
 	fprintf( sfd, "Layer: %d %d ", i, sf->layers[i].order2/*, sf->layers[i].background*/ );
 	SFDDumpUTF7Str(sfd,sf->layers[i].name);
-	fprintf( sfd, " %d\n", sf->layers[i].background );
+	fprintf( sfd, " %d", sf->layers[i].background );
+	fprintf( sfd, " %x", sf->layers[i].color );
+	fprintf( sfd, "\n" );
     }
     if ( sf->strokedfont )
 	fprintf(sfd, "StrokedFont: %d\n", sf->strokedfont );
@@ -6483,6 +6485,13 @@ static SplineFont *SFD_GetFont(FILE *sfd,SplineFont *cidmaster,char *tok,
 	    if ( ch!='\n' ) {
 		getint(sfd,&bk);
 		sf->layers[layer].background = bk;
+	    }
+	    while ( (ch=nlgetc(sfd))==' ' );
+	    ungetc(ch,sfd);
+	    if ( ch!='\n' ) {
+		Color c = 0;
+		gethex(sfd,&c);
+		sf->layers[layer].color = c;
 	    }
 	} else if ( strmatch(tok,"StrokedFont:")==0 ) {
 	    int temp;
