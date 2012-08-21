@@ -1817,14 +1817,24 @@ static void PI_FixStuff(GIData *ci) {
 	SplinePointCatagorize(sp);	/* Users can change cps so it isn't a tangent, so check */
 }
 
+static void PI_Close(GGadget *g) {
+    GWindow gw = GGadgetGetWindow(g);
+    GIData  *d = GDrawGetUserData(gw);
+    GDrawDestroyWindow(GGadgetGetWindow(g));
+    free(d);
+}
+
 static int PI_Cancel(GGadget *g, GEvent *e) {
+    printf("PI_cancel(top)\n");
     if ( e->type==et_controlevent && e->u.control.subtype == et_buttonactivate ) {
 	PI_DoCancel( GDrawGetUserData(GGadgetGetWindow(g)));
     }
+    PI_Close(g);
 return( true );
 }
 
 static int PI_Ok(GGadget *g, GEvent *e) {
+    printf("PI_Ok(top)\n");
     if ( e->type==et_controlevent && e->u.control.subtype == et_buttonactivate ) {
 	GIData *ci = GDrawGetUserData(GGadgetGetWindow(g));
 
@@ -1834,6 +1844,9 @@ static int PI_Ok(GGadget *g, GEvent *e) {
 	ci->done = true;
 	/* All the work has been done as we've gone along */
     }
+    printf("PI_Ok(bot)\n");
+    PI_Close(g);
+    
 return( true );
 }
 
@@ -2603,7 +2616,7 @@ return( ti );
 }
 
 static void PointGetInfo(CharView *cv, SplinePoint *sp, SplinePointList *spl) {
-    static GIData gi;
+    GIData* gi = 0;
     GRect pos;
     GWindowAttrs wattrs;
     GGadgetCreateData gcd[54], hgcd[2], h2gcd[2], mgcd[11];
@@ -2620,23 +2633,26 @@ static void PointGetInfo(CharView *cv, SplinePoint *sp, SplinePointList *spl) {
     GPoint pt;
     int j, defxpos, nextstarty, k, l;
 
+    gi = gcalloc(1,sizeof(GIData));
+    
     cur.main_background = nextcp.main_background = prevcp.main_background = COLOR_DEFAULT;
     cur.main_foreground = 0xff0000;
     nextcp.main_foreground = nextcpcol;
     prevcp.main_foreground = prevcpcol;
-    gi.cv = cv;
-    gi.sc = cv->b.sc;
-    gi.cursp = sp;
-    gi.curspl = spl;
-    gi.oldstate = SplinePointListCopy(cv->b.layerheads[cv->b.drawmode]->splines);
-    gi.done = false;
+    gi->cv = cv;
+    gi->sc = cv->b.sc;
+    gi->cursp = sp;
+    gi->curspl = spl;
+    gi->oldstate = SplinePointListCopy(cv->b.layerheads[cv->b.drawmode]->splines);
+    gi->done = false;
     CVPreserveState(&cv->b);
 
     root = GDrawGetRoot(NULL);
     GDrawGetSize(root,&screensize);
 
 	memset(&wattrs,0,sizeof(wattrs));
-	wattrs.mask = wam_events|wam_cursor|wam_utf8_wtitle|wam_positioned|wam_isdlg|wam_restrict;
+	wattrs.mask = wam_events|wam_cursor|wam_utf8_wtitle|wam_positioned|wam_isdlg;
+//	wattrs.mask = wam_events|wam_cursor|wam_utf8_wtitle|wam_positioned|wam_isdlg|wam_restrict;
 	wattrs.event_masks = ~(1<<et_charup);
 	wattrs.restrict_input_to_me = 1;
 	wattrs.positioned = 1;
@@ -2656,7 +2672,7 @@ static void PointGetInfo(CharView *cv, SplinePoint *sp, SplinePointList *spl) {
 	if ( pos.y+pos.height+20 > screensize.height )
 	    pos.y = screensize.height - pos.height - 20;
 	if ( pos.y<0 ) pos.y = 0;
-	gi.gw = GDrawCreateTopWindow(NULL,&pos,pi_e_h,&gi,&wattrs);
+	gi->gw = GDrawCreateTopWindow(NULL,&pos,pi_e_h,gi,&wattrs);
 
 	memset(&gcd,0,sizeof(gcd));
 	memset(&label,0,sizeof(label));
@@ -2668,7 +2684,7 @@ static void PointGetInfo(CharView *cv, SplinePoint *sp, SplinePointList *spl) {
 	memset(&pb,0,sizeof(pb));
 
 	j=k=0;
-	gi.gcd = gcd;
+	gi->gcd = gcd;
 
 	label[j].text = (unichar_t *) _("_Normal");
 	label[j].text_is_1byte = true;
@@ -2711,7 +2727,7 @@ static void PointGetInfo(CharView *cv, SplinePoint *sp, SplinePointList *spl) {
 	varray[k++] = &gcd[j];
 	++j;
 
-	gi.normal_start = j;
+	gi->normal_start = j;
 	label[j].text = (unichar_t *) _("_Base:");
 	label[j].text_is_1byte = true;
 	label[j].text_in_resource = true;
@@ -2967,15 +2983,15 @@ static void PointGetInfo(CharView *cv, SplinePoint *sp, SplinePointList *spl) {
 	pb[5].gd.u.boxelements = hvarray2;
 	pb[5].creator = GHVGroupCreate;
 	varray[k++] = &pb[5];
-	gi.normal_end = j;
+	gi->normal_end = j;
 
-	gi.interp_start = j;
+	gi->interp_start = j;
 	l = 0;
 	label[j].text = (unichar_t *) _("_Base:");
 	label[j].text_is_1byte = true;
 	label[j].text_in_resource = true;
 	gcd[j].gd.label = &label[j];
-	gcd[j].gd.pos.x = 5; gcd[j].gd.pos.y = gcd[gi.normal_start].gd.pos.y; 
+	gcd[j].gd.pos.x = 5; gcd[j].gd.pos.y = gcd[gi->normal_start].gd.pos.y; 
 	gcd[j].gd.flags = gg_enabled|gg_visible|gg_dontcopybox;
 	gcd[j].gd.box = &cur;
 	gcd[j].creator = GLabelCreate;
@@ -3040,7 +3056,7 @@ static void PointGetInfo(CharView *cv, SplinePoint *sp, SplinePointList *spl) {
 	gcd[j].creator = GNumericFieldCreate;
 	hvarray3[l++] = &gcd[j]; hvarray3[l++] = NULL; hvarray3[l++] = NULL;
 	++j;
-	gi.interp_end = j;
+	gi->interp_end = j;
 
 	pb[6].gd.flags = gg_enabled|gg_visible;
 	pb[6].gd.u.boxelements = hvarray3;
@@ -3051,7 +3067,7 @@ static void PointGetInfo(CharView *cv, SplinePoint *sp, SplinePointList *spl) {
 	label[j].text = (unichar_t *) _("Type:");
 	label[j].text_is_1byte = true;
 	gcd[j].gd.label = &label[j];
-	gcd[j].gd.pos.x = gcd[0].gd.pos.x; gcd[j].gd.pos.y = gcd[gi.normal_end-2].gd.pos.y+26;
+	gcd[j].gd.pos.x = gcd[0].gd.pos.x; gcd[j].gd.pos.y = gcd[gi->normal_end-2].gd.pos.y+26;
 	gcd[j].gd.flags = gg_enabled|gg_visible;
 	gcd[j].creator = GLabelCreate;
 	harray3[0] = &gcd[j]; harray3[1] = GCD_Glue; harray3[2] = GCD_Glue;
@@ -3251,8 +3267,8 @@ static void PointGetInfo(CharView *cv, SplinePoint *sp, SplinePointList *spl) {
 	mb[4].gd.u.boxelements = marray4;
 	mb[4].creator = GHBoxCreate;
 
-	GGadgetsCreate(gi.gw,mb);
-	gi.group1ret = pb[4].ret; gi.group2ret = pb[5].ret;
+	GGadgetsCreate(gi->gw,mb);
+	gi->group1ret = pb[4].ret; gi->group2ret = pb[5].ret;
 	GTextInfoListFree(hgcd[0].gd.u.list);
 	GTextInfoListFree(h2gcd[0].gd.u.list);
 
@@ -3268,15 +3284,18 @@ static void PointGetInfo(CharView *cv, SplinePoint *sp, SplinePointList *spl) {
 	GHVBoxSetExpandableCol(pb[6].ret,gb_expandglue);
 	GHVBoxSetExpandableCol(pb[7].ret,gb_expandglue);
 
-	PIChangePoint(&gi);
+	PIChangePoint(gi);
 
 	GHVBoxFitWindow(mb[0].ret);
 
+	printf("PointGetInfo() starting...\n");
+	
     GWidgetHidePalettes();
-    GDrawSetVisible(gi.gw,true);
-    while ( !gi.done )
-	GDrawProcessOneEvent(NULL);
-    GDrawDestroyWindow(gi.gw);
+    GDrawSetVisible(gi->gw,true);
+//    while ( !gi->done )
+//	GDrawProcessOneEvent(NULL);
+//    GDrawDestroyWindow(gi->gw);
+    printf("PointGetInfo() done...\n");
 }
 
 /* ************************************************************************** */
