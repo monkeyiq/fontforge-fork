@@ -1991,21 +1991,8 @@ static int LPCB_LayerColorChanged(GGadget *g, GEvent *e) {
     Color col = GColorButtonGetColor(g);
     struct layercolorbuttoninfo *info = GGadgetGetUserData(g);
 
-printf("Got color %06X for layer %d\n",col,info->layer);
-
     if ( info->layer >= 0 )
 	info->cv->b.sc->parent->layers[info->layer].color = col;
-    else {
-printf("setting of layer %d color not implemented\n",info->layer);
-	switch(info->layer) {
-	  case -1:
-	  break;
-	  case -2:
-	  break;
-	  case -3:
-	  break;
-	}
-    }
 
     /* we don't actually care currently which layer color has changed */
     GDrawRequestExpose(info->cv->v,NULL,false);
