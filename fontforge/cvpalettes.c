@@ -1934,7 +1934,13 @@ return;
             r.y = y;
             r.height = layer_height;
             GDrawFillRect(pixmap,&r,mocolor);
-        }
+        } else {
+            r.x = editcol; r.width = ww-r.x;
+	    r.y = y;
+	    r.height = layer_height;
+	    GDrawFillRect(pixmap,&r,cv->b.sc->color);
+	}
+	
         r.x=editcol;
 	if ( ll==-1 || ll==0 || ll==1) {
 	    str = ll==-1 ? _("Guide") : (ll==0 ?_("Back") : _("Fore")) ;
@@ -4131,4 +4137,10 @@ void PalettesChangeDocking(void) {
 
 int BVPalettesWidth(void) {
 return( GGadgetScale(BV_LAYERS_WIDTH));
+}
+
+void CVLayersRedraw() 
+{
+    GDrawRequestExpose(cvlayers,NULL,false);
+
 }

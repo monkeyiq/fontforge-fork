@@ -1639,6 +1639,7 @@ static void CI_ApplyAll(CharInfo *ci) {
 	    GDrawRequestExpose(fvs->v,NULL,false);	/* Redraw character area in case this char is on screen */
 	}
     }
+    CVLayersRedraw();
     if ( ci->changes )
 	sf->changed = true;
 }
@@ -4183,7 +4184,7 @@ return;
     if ( enc==-1 )
 	enc = map->backmap[sc->orig_pos];
     ci->enc = enc;
-
+    
     if ( !boxset ) {
 	extern GBox _ggadget_Default_Box;
 	extern void GGadgetInit(void);
