@@ -5129,17 +5129,8 @@ return( GGadgetDispatchEvent(cv->vsb,event));
 	CharViewFree(cv);
       break;
       case et_close:
-      {
 	  dlist_foreach( &cv->pointInfoDialogs, PI_Destroy );
-	  
-	      struct dlistnode* node = cv->pointInfoDialogs;
-	      while( node ) {
-		  struct dlistnode* t = node;
-		  node = node->next;
-		  PI_Destroy(t);
-	      }
-	  }
-	GDrawDestroyWindow(gw);
+	  GDrawDestroyWindow(gw);
       break;
       case et_mouseup: case et_mousedown:
 	GGadgetEndPopup();
@@ -11171,11 +11162,6 @@ void dlist_foreach( struct dlistnode** list, dlist_foreach_func_type func )
 	node = node->next;
 	func( node );
     }
-    
-    /* struct dlistnode* node = *list; */
-    /* for( ; node; node=node->next ) { */
-    /* 	func( node ); */
-    /* } */
 }
 
 

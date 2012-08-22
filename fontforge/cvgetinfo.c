@@ -1832,7 +1832,6 @@ static void PI_Close(GGadget *g) {
 }
 
 static int PI_Cancel(GGadget *g, GEvent *e) {
-    printf("PI_cancel(top)\n");
     if ( e->type==et_controlevent && e->u.control.subtype == et_buttonactivate ) {
 	PI_DoCancel( GDrawGetUserData(GGadgetGetWindow(g)));
     }
@@ -1841,7 +1840,6 @@ return( true );
 }
 
 static int PI_Ok(GGadget *g, GEvent *e) {
-    printf("PI_Ok(top)\n");
     if ( e->type==et_controlevent && e->u.control.subtype == et_buttonactivate ) {
 	GIData *ci = GDrawGetUserData(GGadgetGetWindow(g));
 
@@ -1851,7 +1849,6 @@ static int PI_Ok(GGadget *g, GEvent *e) {
 	ci->done = true;
 	/* All the work has been done as we've gone along */
     }
-    printf("PI_Ok(bot)\n");
     PI_Close(g);
     
 return( true );
@@ -3296,12 +3293,9 @@ static void PointGetInfo(CharView *cv, SplinePoint *sp, SplinePointList *spl) {
 
 	GHVBoxFitWindow(mb[0].ret);
 
-	printf("PointGetInfo() starting...\n");
-
 	dlist_pushfront( &cv->pointInfoDialogs, gi );
-    GWidgetHidePalettes();
-    GDrawSetVisible(gi->gw,true);
-    printf("PointGetInfo() done...\n");
+	GWidgetHidePalettes();
+	GDrawSetVisible(gi->gw,true);
 }
 
 /* ************************************************************************** */
