@@ -34,6 +34,7 @@
 #define TCnt	3
 
 typedef struct gidata {
+    struct dlistnode ln;
     CharView *cv;
     SplineChar *sc;
     RefChar *rf;
@@ -49,7 +50,7 @@ typedef struct gidata {
     int prevchanged, nextchanged;
     int normal_start, normal_end;
     int interp_start, interp_end;
-    GGadgetCreateData *gcd;
+    GGadgetCreateData* gcd;
     GGadget *group1ret, *group2ret;
 } GIData;
 
@@ -1817,11 +1818,17 @@ static void PI_FixStuff(GIData *ci) {
 	SplinePointCatagorize(sp);	/* Users can change cps so it isn't a tangent, so check */
 }
 
+void PI_Destroy(struct dlistnode *node) {
+    GIData *d = (GIData *)node;
+    GDrawDestroyWindow(d->gw);
+    dlist_erase(&d->cv->pointInfoDialogs,d);
+    free(d);
+}
+
 static void PI_Close(GGadget *g) {
     GWindow gw = GGadgetGetWindow(g);
     GIData  *d = GDrawGetUserData(gw);
-    GDrawDestroyWindow(GGadgetGetWindow(g));
-    free(d);
+    PI_Destroy(d);
 }
 
 static int PI_Cancel(GGadget *g, GEvent *e) {
@@ -2019,7 +2026,7 @@ static void PIShowHide(GIData *ci) {
     GWidgetFlowGadgets(GGadgetGetWindow(GWidgetGetControl(ci->gw,CID_Normal)));
 }
 
-static void PIChangePoint(GIData *ci) {
+void PIChangePoint(GIData *ci) {
     int aspect = GTabSetGetSel(GWidgetGetControl(ci->gw,CID_TabSet));
     GGadget *list = GWidgetGetControl(ci->gw,CID_HintMask);
     int32 i, len;
@@ -2619,7 +2626,8 @@ static void PointGetInfo(CharView *cv, SplinePoint *sp, SplinePointList *spl) {
     GIData* gi = 0;
     GRect pos;
     GWindowAttrs wattrs;
-    GGadgetCreateData gcd[54], hgcd[2], h2gcd[2], mgcd[11];
+    const int gcdcount = 54;
+    GGadgetCreateData gcd[gcdcount], hgcd[2], h2gcd[2], mgcd[11];
     GGadgetCreateData mb[5], pb[9];
     GGadgetCreateData *marray[11], *marray2[5], *marray3[5], *marray4[7],
 	*varray[11], *harray1[4], *harray2[6], *hvarray1[25], *hvarray2[25],
@@ -2652,7 +2660,6 @@ static void PointGetInfo(CharView *cv, SplinePoint *sp, SplinePointList *spl) {
 
 	memset(&wattrs,0,sizeof(wattrs));
 	wattrs.mask = wam_events|wam_cursor|wam_utf8_wtitle|wam_positioned|wam_isdlg;
-//	wattrs.mask = wam_events|wam_cursor|wam_utf8_wtitle|wam_positioned|wam_isdlg|wam_restrict;
 	wattrs.event_masks = ~(1<<et_charup);
 	wattrs.restrict_input_to_me = 1;
 	wattrs.positioned = 1;
@@ -2684,8 +2691,9 @@ static void PointGetInfo(CharView *cv, SplinePoint *sp, SplinePointList *spl) {
 	memset(&pb,0,sizeof(pb));
 
 	j=k=0;
-	gi->gcd = gcd;
-
+	gi->gcd = galloc( gcdcount*sizeof(GGadgetCreateData) );
+	memcpy( gi->gcd, gcd, gcdcount*sizeof(GGadgetCreateData) );
+	
 	label[j].text = (unichar_t *) _("_Normal");
 	label[j].text_is_1byte = true;
 	label[j].text_in_resource = true;
@@ -3289,12 +3297,10 @@ static void PointGetInfo(CharView *cv, SplinePoint *sp, SplinePointList *spl) {
 	GHVBoxFitWindow(mb[0].ret);
 
 	printf("PointGetInfo() starting...\n");
-	
+
+	dlist_pushfront( &cv->pointInfoDialogs, gi );
     GWidgetHidePalettes();
     GDrawSetVisible(gi->gw,true);
-//    while ( !gi->done )
-//	GDrawProcessOneEvent(NULL);
-//    GDrawDestroyWindow(gi->gw);
     printf("PointGetInfo() done...\n");
 }
 
