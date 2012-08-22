@@ -2187,6 +2187,9 @@ extern void SplineCharFreeContents(SplineChar *sc);
 extern void SplineCharFree(SplineChar *sc);
 extern void EncMapFree(EncMap *map);
 extern EncMap *EncMapFromEncoding(SplineFont *sf,Encoding *enc);
+typedef int (*CompactEncMapWithSelectorFunction)(SplineChar *sc);
+extern EncMap *CompactEncMapWithSelector(EncMap *map, SplineFont *sf,
+					 CompactEncMapWithSelectorFunction selfunc );
 extern EncMap *CompactEncMap(EncMap *map, SplineFont *sf);
 extern EncMap *EncMapNew(int encmax, int backmax, Encoding *enc);
 extern EncMap *EncMap1to1(int enccount);

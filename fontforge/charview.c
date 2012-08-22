@@ -46,7 +46,7 @@ extern int _GScrollBar_Width;
 
 extern struct gidata;
 extern void PIChangePoint(struct gidata *ci);
-
+extern void PI_Destroy(struct dlistnode *node);
 
 int ItalicConstrained=true;
 int cv_auto_goto = true;

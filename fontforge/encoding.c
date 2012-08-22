@@ -2005,16 +2005,19 @@ return( NULL );
 return( map );
 }
 
-EncMap *CompactEncMap(EncMap *map, SplineFont *sf) {
+EncMap *CompactEncMapWithSelector(EncMap *map, SplineFont *sf,
+				  CompactEncMapWithSelectorFunction selfunc ) {
     int i, inuse, gid;
     int32 *newmap;
 
+    printf("CompactEncMapWithSelector() selfunc:%p worthoutputting:%p\n",
+	   selfunc, SCWorthOutputting );
     for ( i=inuse=0; i<map->enccount ; ++i )
-	if ( (gid = map->map[i])!=-1 && SCWorthOutputting(sf->glyphs[gid]))
+	if ( (gid = map->map[i])!=-1 && selfunc(sf->glyphs[gid]))
 	    ++inuse;
     newmap = galloc(inuse*sizeof(int32));
     for ( i=inuse=0; i<map->enccount ; ++i )
-	if ( (gid = map->map[i])!=-1 && SCWorthOutputting(sf->glyphs[gid]))
+	if ( (gid = map->map[i])!=-1 && selfunc(sf->glyphs[gid]))
 	    newmap[inuse++] = gid;
     free(map->map);
     map->map = newmap;
@@ -2027,6 +2030,11 @@ EncMap *CompactEncMap(EncMap *map, SplineFont *sf) {
 	    map->backmap[gid] = i;
 return( map );
 }
+
+EncMap *CompactEncMap(EncMap *map, SplineFont *sf) {
+    return CompactEncMapWithSelector( map, sf, SCWorthOutputting );
+}
+
 
 static void BCProtectUndoes( Undoes *undo,BDFChar *bc ) {
     BDFRefChar *brhead, *brprev=NULL, *brnext;

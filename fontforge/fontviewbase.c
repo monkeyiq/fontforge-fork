@@ -1485,7 +1485,7 @@ void FVRemoveUnused(FontViewBase *fv) {
 	FontViewReformatOne(fv);
 }
 
-void FVCompact(FontViewBase *fv) {
+void FVCompactWithSelector( FontViewBase *fv, CompactEncMapWithSelectorFunction selfunc ) {
     int oldcount = fv->map->enccount;
 
     if ( fv->normal!=NULL ) {
@@ -1498,11 +1498,14 @@ void FVCompact(FontViewBase *fv) {
 	/* We reduced the encoding, so don't really need to reallocate the selection */
 	/*  array. It's just bigger than it needs to be. */
 	fv->normal = EncMapCopy(fv->map);
-	CompactEncMap(fv->map,fv->sf);
+	CompactEncMapWithSelector(fv->map,fv->sf,selfunc);
     }
     if ( oldcount!=fv->map->enccount )
 	FontViewReformatOne(fv);
     FVSetTitle(fv);
+}
+void FVCompact(FontViewBase *fv) {
+    FVCompactWithSelector( fv, SCWorthOutputting );
 }
 
 void FVDetachGlyphs(FontViewBase *fv) {

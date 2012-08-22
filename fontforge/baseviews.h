@@ -436,6 +436,7 @@ extern void FVVKernFromHKern(FontViewBase *fv);
 extern void FVAddUnencoded(FontViewBase *fv, int cnt);
 extern void FVRemoveUnused(FontViewBase *fv);
 extern void FVCompact(FontViewBase *fv);
+extern void FVCompactWithSelector( FontViewBase *fv, CompactEncMapWithSelectorFunction selfunc );
 extern void FVDetachGlyphs(FontViewBase *fv);
 extern void FVDetachAndRemoveGlyphs(FontViewBase *fv);
 extern int AutoWidthScript(FontViewBase *fv,int spacing);
