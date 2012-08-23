@@ -1498,6 +1498,44 @@ void FVCompactWithSelector( FontViewBase *fv, CompactEncMapWithSelectorFunction 
 	/* We reduced the encoding, so don't really need to reallocate the selection */
 	/*  array. It's just bigger than it needs to be. */
 	fv->normal = EncMapCopy(fv->map);
+	if(0)
+	{
+	    int i=0;
+	    SplineChar *sc;
+	    int gid = 0;
+	    gid = fv->map->map[i];
+	    printf("i:%d gid:%d normal.gid:%d\n", i, gid, fv->normal->map[i] );
+	    if( gid != -1 ) {
+		sc = fv->sf->glyphs[gid];
+		if( sc ) {
+		    printf("xx() sc:%p sc->unicodeenc:%d\n",
+			   sc, sc->unicodeenc );
+		}
+	    }
+	}
+	if(0)
+	{
+	    int i=0;
+	    SplineChar dummy;
+	    SplineFont *sf = fv->sf;
+	    for ( i=0; i<sf->glyphcnt; ++i ) {
+		SplineChar *sc = 0;
+		if ( sf->glyphs[i]!=NULL ) {
+		    sc = sf->glyphs[i];
+		}
+		else {
+		    sc = SCBuildDummy(&dummy,sf,fv->map,i);
+
+		}
+
+		if( sc ) {
+		    printf("xx() sc:%p sc->unicodeenc:%d\n",
+			   sc, sc->unicodeenc );
+		}
+	    }
+	}
+	
+	
 	CompactEncMapWithSelector(fv->map,fv->sf,selfunc);
     }
     if ( oldcount!=fv->map->enccount )

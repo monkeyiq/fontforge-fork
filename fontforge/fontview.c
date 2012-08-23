@@ -4712,58 +4712,58 @@ static void FVMenuCompact(GWindow gw, struct gmenuitem *UNUSED(mi), GEvent *UNUS
 static int FVMenuHideEmptySlotsSelectorFunction(SplineChar *sc) {
     if( !sc )
 	return 0;
-    printf("FVMenuHideEmptySlotsSelectorFunction() sc:%p ud:%d\n", sc, sc->unicodeenc);
+//    printf("FVMenuHideEmptySlotsSelectorFunction() sc:%p ud:%d\n", sc, sc->unicodeenc);
 
     int ret = 1;
     if( sc->unicodeenc == -1 )
 	return 0;
     return ret;
     
-    char *pt = strchr(sc->name,'.');
-    if ( pt!=NULL ) {
-	int i, n = pt-sc->name;
-	char *end;
-	SplineFont *cm = sc->parent->cidmaster;
-	printf("ret=0 part 1 n:%s\n",sc->name);
-	if ( n==7 && sc->name[0]=='u' && sc->name[1]=='n' && sc->name[2]=='i' &&
-	     (i=strtol(sc->name+3,&end,16), end-sc->name==7))
-	{
-	    printf("ret=0 part 1 n:%s\n",sc->name);
-	    ret = 0;
-	}
-	else if ( n>=5 && n<=7 && sc->name[0]=='u' &&
-		  (i=strtol(sc->name+1,&end,16), end-sc->name==n))
-	{
-	    printf("ret=0 part 2\n");
-	    ret = 0;
-	}
-	else if ( cm!=NULL && (i=CIDFromName(sc->name,cm))!=-1 )
-	{
-	    int uni;
-	    printf("ret=0 trying to get uni...\n");
-	    uni = CID2Uni(FindCidMap(cm->cidregistry,cm->ordering,cm->supplement,cm),
-			  i);
-	    if ( uni!=-1 )
-	    {
-		printf("ret=0 part 3\n");
-		ret = 0;
-	    }
-	} else {
-	    int uni;
-	    *pt = '\0';
-	    uni = UniFromName(sc->name,sc->parent->uni_interp,0);
-	    if ( uni!=-1 ) {
-		printf("ret=0 part 4\n");
-		ret = 0;
-	    }
-	    *pt = '.';
-	}
-    }
+    /* char *pt = strchr(sc->name,'.'); */
+    /* if ( pt!=NULL ) { */
+    /* 	int i, n = pt-sc->name; */
+    /* 	char *end; */
+    /* 	SplineFont *cm = sc->parent->cidmaster; */
+    /* 	printf("ret=0 part 1 n:%s\n",sc->name); */
+    /* 	if ( n==7 && sc->name[0]=='u' && sc->name[1]=='n' && sc->name[2]=='i' && */
+    /* 	     (i=strtol(sc->name+3,&end,16), end-sc->name==7)) */
+    /* 	{ */
+    /* 	    printf("ret=0 part 1 n:%s\n",sc->name); */
+    /* 	    ret = 0; */
+    /* 	} */
+    /* 	else if ( n>=5 && n<=7 && sc->name[0]=='u' && */
+    /* 		  (i=strtol(sc->name+1,&end,16), end-sc->name==n)) */
+    /* 	{ */
+    /* 	    printf("ret=0 part 2\n"); */
+    /* 	    ret = 0; */
+    /* 	} */
+    /* 	else if ( cm!=NULL && (i=CIDFromName(sc->name,cm))!=-1 ) */
+    /* 	{ */
+    /* 	    int uni; */
+    /* 	    printf("ret=0 trying to get uni...\n"); */
+    /* 	    uni = CID2Uni(FindCidMap(cm->cidregistry,cm->ordering,cm->supplement,cm), */
+    /* 			  i); */
+    /* 	    if ( uni!=-1 ) */
+    /* 	    { */
+    /* 		printf("ret=0 part 3\n"); */
+    /* 		ret = 0; */
+    /* 	    } */
+    /* 	} else { */
+    /* 	    int uni; */
+    /* 	    *pt = '\0'; */
+    /* 	    uni = UniFromName(sc->name,sc->parent->uni_interp,0); */
+    /* 	    if ( uni!=-1 ) { */
+    /* 		printf("ret=0 part 4\n"); */
+    /* 		ret = 0; */
+    /* 	    } */
+    /* 	    *pt = '.'; */
+    /* 	} */
+    /* } */
 
-    ret = !ret;
-    printf("FVMenuHideEmptySlotsSelectorFunction()...ret:%d name:%s pt:%p\n",ret,sc->name,pt);
+    /* ret = !ret; */
+    /* printf("FVMenuHideEmptySlotsSelectorFunction()...ret:%d name:%s pt:%p\n",ret,sc->name,pt); */
     
-    return ret;
+    /* return ret; */
 }
 
 
@@ -4771,7 +4771,7 @@ static void FVMenuHideEmptySlots(GWindow gw, struct gmenuitem *UNUSED(mi), GEven
     FontView *fv = (FontView *) GDrawGetUserData(gw);
     SplineChar *sc;
 
-    printf("FVMenuHideEmptySlots()\n");
+//    printf("FVMenuHideEmptySlots()\n");
     sc = FVFindACharInDisplay(fv);
     FVCompactWithSelector((FontViewBase *) fv, FVMenuHideEmptySlotsSelectorFunction );
     if ( sc!=NULL ) {
@@ -6129,7 +6129,7 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 	    if ( fv->b.sf->uni_interp==ui_ams && uni>=0xe000 && uni<=0xf8ff &&
 		    amspua[uni-0xe000]!=0 )
 		uni = amspua[uni-0xe000];
-	    printf("glyphlabel:%d\n",fv->glyphlabel);
+//	    printf("glyphlabel:%d\n",fv->glyphlabel);
 	    switch ( fv->glyphlabel ) {
 	      case gl_name:
 		uc_strncpy(buf,sc->name,sizeof(buf)/sizeof(buf[0]));
@@ -6153,7 +6153,7 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 		styles = _uni_sans;
 	      break;
 	      case gl_glyph:
-		  printf("gl_glyph... uni:%ld\n",uni);
+//		  printf("gl_glyph... uni:%ld\n",uni);
 		if ( uni==0xad )
 		    buf[0] = '-';
 		else if ( fv->b.sf->uni_interp==ui_adobe && uni>=0xf600 && uni<=0xf7ff &&
@@ -6191,7 +6191,7 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 		    char *pt = strchr(sc->name,'.');
 		    buf[0] = '?';
 		    fg = 0xff0000;
-		    printf("last else block...name:%s pt:%p\n",sc->name,pt);
+//		    printf("last else block...name:%s pt:%p\n",sc->name,pt);
 		    if ( pt!=NULL ) {
 			int i, n = pt-sc->name;
 			char *end;
@@ -6212,7 +6212,7 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 			    int uni;
 			    *pt = '\0';
 			    uni = UniFromName(sc->name,fv->b.sf->uni_interp,fv->b.map->enc);
-			    printf("uniFromName...() uni:%ld\n", uni );
+//			    printf("uniFromName...() uni:%ld\n", uni );
 			    if ( uni!=-1 )
 				buf[0] = uni;
 			    *pt = '.';
@@ -6273,8 +6273,8 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 		GDrawDrawLine(pixmap,r.x+r.width-2,r.y,r.x+r.width-2,r.y+r.height-1,hintcol);
 		GDrawDrawLine(pixmap,r.x+r.width-3,r.y,r.x+r.width-3,r.y+r.height-1,hintcol);
 	    }
-	    printf("fv expose() use_utf8:%d buf:%s\n",
-		   use_utf8, use_utf8 ? utf8_buf : buf );
+	    /* printf("fv expose() use_utf8:%d buf:%s\n", */
+	    /* 	   use_utf8, use_utf8 ? utf8_buf : buf ); */
 	    if ( rotated!=NULL ) {
 		GDrawPushClip(pixmap,&r,&old2);
 		if ( fgxor!=0 )
@@ -6793,7 +6793,12 @@ return;
 
     sc = (gid=fv->b.map->map[pos])!=-1 ? fv->b.sf->glyphs[gid] : NULL;
     if ( sc==NULL )
+    {
+//	printf("SCBuildDummy() pos:%d\n", pos );
 	sc = SCBuildDummy(&dummy,fv->b.sf,fv->b.map,pos);
+//	printf("xx() sc:%p sc->unicodeenc:%d\n", sc, sc->unicodeenc );
+	
+    }
     if ( event->type == et_mouseup && event->u.mouse.clicks==2 ) {
 	if ( fv->pressed ) {
 	    GDrawCancelTimer(fv->pressed);

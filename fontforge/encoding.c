@@ -2010,24 +2010,57 @@ EncMap *CompactEncMapWithSelector(EncMap *map, SplineFont *sf,
     int i, inuse, gid;
     int32 *newmap;
 
-    printf("CompactEncMapWithSelector() selfunc:%p worthoutputting:%p\n",
-	   selfunc, SCWorthOutputting );
-    for ( i=inuse=0; i<map->enccount ; ++i )
-	if ( (gid = map->map[i])!=-1 && selfunc(sf->glyphs[gid]))
-	    ++inuse;
+    for ( i=inuse=0; i<map->enccount ; ++i ) {
+	if ( (gid = map->map[i])!=-1 ) {
+	    if(selfunc(sf->glyphs[gid])) {
+		++inuse;
+	    }
+	}
+	/* else if( selfunc != SCWorthOutputting ) { */
+	/*     SplineChar dummy; */
+	/*     SCBuildDummy(&dummy,sf,map,i); */
+	/*     if(selfunc(&dummy)) { */
+	/* 	++inuse; */
+	/*     } */
+	/* } */
+    }
     newmap = galloc(inuse*sizeof(int32));
-    for ( i=inuse=0; i<map->enccount ; ++i )
-	if ( (gid = map->map[i])!=-1 && selfunc(sf->glyphs[gid]))
-	    newmap[inuse++] = gid;
+    for ( i=inuse=0; i<map->enccount ; ++i ) {
+	if ( (gid = map->map[i])!=-1 ) {
+	    if(selfunc(sf->glyphs[gid])) {
+		newmap[inuse++] = gid;
+	    }
+	}
+	// This sets the world on fire.
+	/* else if( selfunc != SCWorthOutputting ) { */
+	/*     SplineChar dummy; */
+	/*     SCBuildDummy(&dummy,sf,map,i); */
+	/*     if(selfunc(&dummy)) { */
+	/* 	gid = dummy.unicodeenc; */
+	/* 	printf("encmap with selector(), i:%d unicodeenc:%d\n", i, dummy.unicodeenc ); */
+	/* 	newmap[inuse++] = dummy.unicodeenc; */
+	/*     } */
+	/* } */
+	
+    }
     free(map->map);
     map->map = newmap;
     map->enccount = inuse;
     map->encmax = inuse;
     map->enc = &custom;
     memset(map->backmap,-1,sf->glyphcnt*sizeof(int));
-    for ( i=inuse-1; i>=0; --i )
-	if ( (gid=map->map[i])!=-1 )
+    for ( i=inuse-1; i>=0; --i ) {
+	if ( (gid=map->map[i])!=-1 ) {
 	    map->backmap[gid] = i;
+	}
+	/* else { */
+	/*     SplineChar dummy; */
+	/*     SCBuildDummy(&dummy,sf,map,i); */
+	/*     gid = dummy.unicodeenc; */
+	/*     printf("reverse2... gid:%d i:%d\n", gid, i ); */
+	/*     map->backmap[gid] = i; */
+	/* } */
+    }
 return( map );
 }
 
