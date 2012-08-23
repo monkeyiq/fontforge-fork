@@ -3191,6 +3191,86 @@ static void CVDoFindInFontView(CharView *cv) {
     GDrawRaise(((FontView *) (cv->b.fv))->gw);
 }
 
+typedef struct hotkey {
+//    unichar_t shortcut;
+//    short short_mask;
+    uint16 state;
+    uint16 keysym;
+} Hotkey;
+Hotkey* HotkeyParse( Hotkey*hk, const char* t );
+int     HotkeyMatches( Hotkey* hk, GEvent *event );
+
+Hotkey* HotkeyParse( Hotkey *hk, const char* t ) {
+    memset( hk, 0, sizeof(Hotkey));
+    if( !t )
+	return hk;
+    if( !strlen(t) )
+	return hk;
+    if( t[0] >= 'a' && t[0] <= 'z' )
+	hk->keysym = t[0];
+    if( t[0] >= '0' && t[0] <= '9' )
+	hk->keysym = t[0];
+    return hk;
+}
+
+int HotkeyMatches( Hotkey* hk, GEvent *event ) {
+
+    if( event->u.chr.autorepeat )
+	return 0;
+    
+    if( hk->keysym ) {
+	return event->u.chr.keysym == hk->keysym;
+    }
+    
+    return 0;
+}
+
+typedef void (*CVHotkeyFunc)(CharView *cv,GEvent *event);
+typedef struct cvhotkey {
+    const char*  keydesc;
+    CVHotkeyFunc func;
+    Hotkey       hk;
+} CVHotkey;
+
+
+void CVHotkeyFuncSwitchToZoom(CharView *cv,GEvent *event) {
+    CVSelectTool( cv, cvt_magnify );
+}
+void CVHotkeyFuncSwitchToRuler(CharView *cv,GEvent *event) {
+    CVSelectTool( cv, cvt_ruler );
+}
+void CVHotkeyFuncSwitchToPointer(CharView *cv,GEvent *event) {
+    CVSelectTool( cv, cvt_pointer );
+}
+void CVHotkeyFuncSwitchToHand(CharView *cv,GEvent *event) {
+    CVSelectTool( cv, cvt_hand );
+}
+void CVHotkeyFuncSwitchToPointCurve(CharView *cv,GEvent *event) {
+    CVSelectTool( cv, cvt_curve );
+}
+void CVHotkeyFuncSwitchToPointHVCurve(CharView *cv,GEvent *event) {
+    CVSelectTool( cv, cvt_hvcurve );
+}
+void CVHotkeyFuncSwitchToPointCorner(CharView *cv,GEvent *event) {
+    CVSelectTool( cv, cvt_corner );
+}
+void CVHotkeyFuncSwitchToPointTangent(CharView *cv,GEvent *event) {
+    CVSelectTool( cv, cvt_tangent );
+}
+CVHotkey CVHotkeys[] = {
+    { "CharView.HotkeyToolZoom",    CVHotkeyFuncSwitchToZoom    },
+    { "CharView.HotkeyToolRuler",   CVHotkeyFuncSwitchToRuler   },
+    { "CharView.HotkeyToolPointer", CVHotkeyFuncSwitchToPointer },
+    { "CharView.HotkeyToolHand",    CVHotkeyFuncSwitchToHand    },
+    { "CharView.HotkeyToolPointCurve",   CVHotkeyFuncSwitchToPointCurve   },
+    { "CharView.HotkeyToolPointHVCurve", CVHotkeyFuncSwitchToPointHVCurve },
+    { "CharView.HotkeyToolPointCorner",  CVHotkeyFuncSwitchToPointCorner  },
+    { "CharView.HotkeyToolPointTangent", CVHotkeyFuncSwitchToPointTangent },
+    { NULL, NULL }
+    
+};
+
+
 static uint16 HaveModifiers = 0;
 static uint16 PressingTilde = 0;
 static uint16 PrevCharEventWasCharUpOnControl = 0;
@@ -3239,6 +3319,37 @@ static void CVCharUp(CharView *cv, GEvent *event ) {
 	    return;
 	}
     }
+    
+    if( !cv_auto_goto && !event->u.chr.autorepeat )
+    {
+	CVHotkey* cvhk = CVHotkeys;
+	int i=0;
+	for( ; cvhk->keydesc; cvhk++ ) {
+	    printf("name:%s\n", cvhk->keydesc );
+
+	    if( HotkeyMatches( &(cvhk->hk), event ) ) {
+		cvhk->func( cv, event );
+	    }
+	    
+	    /* Hotkey hk; */
+	    /* HotkeyParse( &hk, GResourceFindString(cvhk->keydesc)); */
+	    /* if( HotkeyMatches( &hk, event ) ) { */
+	    /* 	cvhk->func( cv, event ); */
+	    /* } */
+	}
+	
+	
+/* CVHotkey CVHotkeys[] = { */
+/*     { "CharView.HotkeyZoom",    CVHotkeyFuncSwitchToZoom }, */
+/*     { "CharView.HotkeyRuler",   CVHotkeyFuncSwitchToRuler }, */
+	
+	/* HotkeyParse( &hk, GResourceFindString("CharView.HotkeyZoom") ); */
+	/* if( HotkeyMatches( &hk, event ) ) { */
+	/*     // do the zoom. */
+	/*     CVSelectTool( cv, cvt_magnify ); */
+	/* } */
+    }
+    
     
     
     
@@ -10568,6 +10679,7 @@ static void _CharViewCreate(CharView *cv, SplineChar *sc, FontView *fv,int enc) 
 	ff_post_error(_("You may not use spiros"),_("This glyph should display spiro points, but unfortunately FontForge was unable to load libspiro, spiros are not available for use, and normal bezier points will be displayed instead."));
 #endif
     }
+    
 }
 
 void DefaultY(GRect *pos) {
@@ -10742,6 +10854,14 @@ return;
     mb2DoGetText(spiroptlist);
     for ( i=0; mblist_nomm[i].ti.text!=NULL; ++i )
 	mblist_nomm[i].ti.text = (unichar_t *) _((char *) mblist_nomm[i].ti.text);
+
+    //
+    // Precache the hotkey parsing
+    //
+    CVHotkey* cvhk = CVHotkeys;
+    for( i=0; cvhk->keydesc; cvhk++ ) {
+	HotkeyParse( &(cvhk->hk), GResourceFindString(cvhk->keydesc));
+    }
 }
 
 static int nested_cv_e_h(GWindow gw, GEvent *event) {
