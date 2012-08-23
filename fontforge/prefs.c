@@ -2511,13 +2511,6 @@ void DoXRes(void) {
     GResEdit(&fontview_ri,xdefs_filename,change_res_filename);
 }
 
-struct prefs_list pointer_dialog_list[] = {
-    { N_("ArrowMoveSize"), pr_real, &arrowAmount, NULL, NULL, '\0', NULL, 0, N_("The number of em-units by which an arrow key will move a selected point") },
-    { N_("ArrowAccelFactor"), pr_real, &arrowAccelFactor, NULL, NULL, '\0', NULL, 0, N_("Holding down the Alt (or Meta) key will speed up arrow key motion by this factor") },
-    { N_("InterpolateCPsOnMotion"), pr_bool, &interpCPsOnMotion, NULL, NULL, '\0', NULL, 0, N_("When moving one end point of a spline but not the other\ninterpolate the control points between the two.") },
-    PREFS_LIST_EMPTY
-};
-
 static int PrefsSubSet_Ok(GGadget *g, GEvent *e) {
     GWindow gw = GGadgetGetWindow(g);
     struct pref_data *p = GDrawGetUserData(GGadgetGetWindow(g));
@@ -2880,6 +2873,14 @@ void PrefsSubSetDlg(CharView *cv,char* windowTitle,struct prefs_list* plist) {
 	GDrawProcessOneEvent(NULL);
     GDrawDestroyWindow(gw);
 }
+
+
+struct prefs_list pointer_dialog_list[] = {
+    { N_("ArrowMoveSize"), pr_real, &arrowAmount, NULL, NULL, '\0', NULL, 0, N_("The number of em-units by which an arrow key will move a selected point") },
+    { N_("ArrowAccelFactor"), pr_real, &arrowAccelFactor, NULL, NULL, '\0', NULL, 0, N_("Holding down the Alt (or Meta) key will speed up arrow key motion by this factor") },
+    { N_("InterpolateCPsOnMotion"), pr_bool, &interpCPsOnMotion, NULL, NULL, '\0', NULL, 0, N_("When moving one end point of a spline but not the other\ninterpolate the control points between the two.") },
+    PREFS_LIST_EMPTY
+};
 
 
 void PointerDlg(CharView *cv) {
