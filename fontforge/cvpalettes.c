@@ -837,7 +837,6 @@ static void ToolsExpose(GWindow pixmap, CharView *cv, GRect *r) {
 
     normbuttons[4][1] = canspiro ? &GIcon_spiroup : &GIcon_spirodisabled;
 
-    printf("tool:%d\n", tool);
     GDrawPushClip(pixmap,r,&old);
     GDrawFillRect(pixmap,r,GDrawGetDefaultBackground(NULL));
     GDrawSetLineWidth(pixmap,0);

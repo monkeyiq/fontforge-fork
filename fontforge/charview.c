@@ -3225,14 +3225,31 @@ int HotkeyMatches( Hotkey* hk, GEvent *event ) {
     return 0;
 }
 
+/**
+ * A function that is invoked when the user presses a collection of
+ * keys that they have defined should perform an action
+ */
 typedef void (*CVHotkeyFunc)(CharView *cv,GEvent *event);
+
+/**
+ * A cvhotkey holds the text descrition of a hotkey in keydesc, a
+ * preparsed version of that hotkey definition in Hotkey, and a
+ * callback function that should be called when that hotkey is
+ * pressed. Note that as the Hotkey element is the last in the struct
+ * is can be left out of a definition when creating an array of
+ * cvhotkey elements. The Hotkey struct can later be initialized when
+ * the resources are read from the user's theme file.
+ */
 typedef struct cvhotkey {
     const char*  keydesc;
     CVHotkeyFunc func;
     Hotkey       hk;
 } CVHotkey;
 
-
+/********
+ * These are a bunch of simple functions that can be called by
+ * hotkeys
+ */
 void CVHotkeyFuncSwitchToZoom(CharView *cv,GEvent *event) {
     CVSelectTool( cv, cvt_magnify );
 }
@@ -3257,6 +3274,9 @@ void CVHotkeyFuncSwitchToPointCorner(CharView *cv,GEvent *event) {
 void CVHotkeyFuncSwitchToPointTangent(CharView *cv,GEvent *event) {
     CVSelectTool( cv, cvt_tangent );
 }
+/**
+ * Keep all the functions and their names in a table for easy selection. 
+ */
 CVHotkey CVHotkeys[] = {
     { "CharView.HotkeyToolZoom",    CVHotkeyFuncSwitchToZoom    },
     { "CharView.HotkeyToolRuler",   CVHotkeyFuncSwitchToRuler   },
@@ -3319,38 +3339,22 @@ static void CVCharUp(CharView *cv, GEvent *event ) {
 	    return;
 	}
     }
-    
-    if( !cv_auto_goto && !event->u.chr.autorepeat )
-    {
+
+    /**
+     * Maybe the user has defined a custom action to be performed when this
+     * key is input.
+     */
+    if( !cv_auto_goto && !event->u.chr.autorepeat ) {
 	CVHotkey* cvhk = CVHotkeys;
 	int i=0;
 	for( ; cvhk->keydesc; cvhk++ ) {
-	    printf("name:%s\n", cvhk->keydesc );
-
 	    if( HotkeyMatches( &(cvhk->hk), event ) ) {
 		cvhk->func( cv, event );
+		// it ends here if we performed a user defined action.
+		return;
 	    }
-	    
-	    /* Hotkey hk; */
-	    /* HotkeyParse( &hk, GResourceFindString(cvhk->keydesc)); */
-	    /* if( HotkeyMatches( &hk, event ) ) { */
-	    /* 	cvhk->func( cv, event ); */
-	    /* } */
 	}
-	
-	
-/* CVHotkey CVHotkeys[] = { */
-/*     { "CharView.HotkeyZoom",    CVHotkeyFuncSwitchToZoom }, */
-/*     { "CharView.HotkeyRuler",   CVHotkeyFuncSwitchToRuler }, */
-	
-	/* HotkeyParse( &hk, GResourceFindString("CharView.HotkeyZoom") ); */
-	/* if( HotkeyMatches( &hk, event ) ) { */
-	/*     // do the zoom. */
-	/*     CVSelectTool( cv, cvt_magnify ); */
-	/* } */
     }
-    
-    
     
     
 #if _ModKeysAutoRepeat
@@ -10855,9 +10859,10 @@ return;
     for ( i=0; mblist_nomm[i].ti.text!=NULL; ++i )
 	mblist_nomm[i].ti.text = (unichar_t *) _((char *) mblist_nomm[i].ti.text);
 
-    //
-    // Precache the hotkey parsing
-    //
+    /**
+     * Precache the hotkey parsing.
+     * No point in parsing these all the time.
+     */
     CVHotkey* cvhk = CVHotkeys;
     for( i=0; cvhk->keydesc; cvhk++ ) {
 	HotkeyParse( &(cvhk->hk), GResourceFindString(cvhk->keydesc));
