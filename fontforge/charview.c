@@ -3192,8 +3192,6 @@ static void CVDoFindInFontView(CharView *cv) {
 }
 
 typedef struct hotkey {
-//    unichar_t shortcut;
-//    short short_mask;
     uint16 state;
     uint16 keysym;
 } Hotkey;
