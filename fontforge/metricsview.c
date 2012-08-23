@@ -36,7 +36,7 @@
 int mv_width = 800, mv_height = 300;
 int mvshowgrid = mv_hidemovinggrid;
 int mv_type = mv_kernonly;
-static int mv_antialias = true;
+int mv_antialias = true;
 static double mv_scales[] = { 8.0, 4.0, 2.0, 1.5, 1.0, 2.0/3.0, .5, 1.0/3.0, .25, .2, 1.0/6.0, .125, .1 };
 #define SCALE_INDEX_NORMAL	4
 
@@ -156,7 +156,7 @@ static void MVSubVExpose(MetricsView *mv, GWindow pixmap, GEvent *event) {
 		    scale = BDFDepth(mv->show);
 		base.image_type = it_index;
 		clut.clut_len = 1<<scale;
-		bg = view_bgcol;
+		bg = mv->viewbg;
 		fg = ( mv->perchar[i].selected ) ? selglyphcol : 0x000000;
 		for ( l=0; l<(1<<scale); ++l )
 		    clut.clut[l] =
@@ -225,6 +225,7 @@ return;
 	}
     }
     si = -1;
+    printf("subexpose() mode:%d bg:%d\n", mv->reversed_render, mv->viewbg );
     for ( i=0; i<mv->glyphcnt; ++i ) {
 	if ( mv->perchar[i].selected ) si = i;
 	x = mv->perchar[i].dx-mv->xoff;
@@ -244,6 +245,7 @@ return;
 	    x += mv->perchar[i].kernafter-mv->perchar[i].xoff;
 	else
 	    x += mv->perchar[i].xoff;
+	printf("i:%d mv->bdf:%p\n", i, mv->bdf );
 	bdfc = mv->bdf==NULL ?	BDFPieceMealCheck(mv->show,mv->glyphs[i].sc->orig_pos) :
 				BDFGetMergedChar( mv->bdf->glyphs[mv->glyphs[i].sc->orig_pos]);
 	if ( bdfc==NULL )
@@ -278,8 +280,14 @@ return;
 		base.image_type = it_index;
 		scale = lscale==8?256:lscale==4?16:4;
 		clut.clut_len = scale;
-		bg = view_bgcol;
+		bg = mv->viewbg;
 		fg = ( mv->perchar[i].selected ) ? selglyphcol : 0x000000;
+
+		/* // FIXME: */
+		/* bg = 0xffff0000; */
+		/* fg = 0xff0000ff; */
+		/* GDrawSetWindowBackground(mv->v, bg); */
+		
 		for ( l=0; l<scale; ++l )
 		    clut.clut[l] =
 			COLOR_CREATE(
@@ -291,8 +299,10 @@ return;
 	    base.bytes_per_line = bdfc->bytes_per_line;
 	    base.width = width;
 	    base.height = height;
-	    if ( mv->pixelsize_set_by_window || mv->scale_index==SCALE_INDEX_NORMAL )
+	    if ( mv->pixelsize_set_by_window || mv->scale_index==SCALE_INDEX_NORMAL ) {
+		printf("using GDrawDrawGlyph()\n");
 		GDrawDrawGlyph(pixmap,&gi,NULL,x,y);
+	    }
 	    else
 		GDrawDrawImageMagnified(pixmap, &gi, NULL, x,y,
 			(int) rint((width*mv_scales[mv->scale_index])),
@@ -467,7 +477,7 @@ static void MVRedrawI(MetricsView *mv,int i,int oldxmin,int oldxmax) {
     GRect r;
     BDFChar *bdfc;
     int off = 0;
-
+    
     if ( mv->right_to_left || mv->vertical ) {
 	/* right to left clipping is hard to think about, it doesn't happen */
 	/*  often enough (I think) for me to put the effort to make it efficient */
@@ -1879,6 +1889,7 @@ return( true );
 #define MID_PrevDef	2013
 #define MID_AntiAlias	2014
 #define MID_FindInFontView	2015
+#define MID_Reverse	2016
 #define MID_Ligatures	2020
 #define MID_KernPairs	2021
 #define MID_AnchorPairs	2022
@@ -2773,6 +2784,21 @@ static void MVMenuShowBitmap(GWindow gw,struct gmenuitem *mi,GEvent *e) {
     }
 }
 
+static void MVMenuShowReverse(GWindow gw,struct gmenuitem *mi,GEvent *e) {
+    MetricsView *mv = (MetricsView *) GDrawGetUserData(gw);
+    Color fg = 0x000000;
+
+    mv->reversed_render=!mv->reversed_render;
+    if(mv->reversed_render) {
+	mv->viewbg = 0x000000;
+    } else {
+	mv->viewbg = view_bgcol;
+    }
+    GDrawSetWindowBackground(mv->v, mv->viewbg);
+    printf("MVMenuShowReverse() mode:%d bg:%d\n", mv->reversed_render, mv->viewbg );
+}
+
+
 #define CID_DPI		1002
 #define CID_Size	1003
 
@@ -3351,6 +3377,7 @@ static GMenuItem2 vwlist[] = {
     { { (unichar_t *) N_("_Bigger Point Size"), NULL, COLOR_DEFAULT, COLOR_DEFAULT, NULL, NULL, 0, 1, 0, 0, 0, 0, 1, 1, 0, 'B' }, H_("Bigger Point Size|Ctl+Shft++"), NULL, NULL, MVMenuChangePointSize, MID_Bigger },
     { { (unichar_t *) N_("_Smaller Point Size"), NULL, COLOR_DEFAULT, COLOR_DEFAULT, NULL, NULL, 0, 1, 0, 0, 0, 0, 1, 1, 0, 'S' }, H_("Smaller Point Size|Ctl+-"), NULL, NULL, MVMenuChangePointSize, MID_Smaller },
     { { NULL, NULL, COLOR_DEFAULT, COLOR_DEFAULT, NULL, NULL, 0, 1, 0, 0, 0, 1, 0, 0, 0, '\0' }, NULL, NULL, NULL, NULL, 0 }, /* line */
+    { { (unichar_t *) N_("Reverse"), NULL, COLOR_DEFAULT, COLOR_DEFAULT, NULL, NULL, 0, 1, 1, 0, 0, 0, 1, 1, 0, 'O' }, H_("Reverse|No Shortcut"), NULL, NULL, MVMenuShowReverse, MID_Reverse },
     { { (unichar_t *) N_("_Outline"), NULL, COLOR_DEFAULT, COLOR_DEFAULT, NULL, NULL, 0, 1, 1, 0, 0, 0, 1, 1, 0, 'O' }, H_("Outline|No Shortcut"), NULL, NULL, MVMenuShowBitmap, MID_Outline },
     GMENUITEM2_EMPTY,
     /* Some extra room to show bitmaps */
@@ -4827,7 +4854,8 @@ MetricsView *MetricsViewCreate(FontView *fv,SplineChar *sc,BDFFont *bdf) {
     pos.y = mv->topend+2; pos.height = mv->displayend - mv->topend - 2;
     memset(&wattrs,0,sizeof(wattrs));
     wattrs.mask = wam_events|wam_backcol|wam_nocairo;
-    wattrs.background_color = view_bgcol;
+    mv->viewbg = view_bgcol;
+    wattrs.background_color = mv->viewbg;
     wattrs.event_masks = -1;
     wattrs.cursor = ct_mypointer;
     mv->v = GWidgetCreateSubWindow(mv->gw,&pos,mv_v_e_h,mv,&wattrs);

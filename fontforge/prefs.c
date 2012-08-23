@@ -93,6 +93,7 @@ extern int cvvisible[2], bvvisible[3];	/* in cvpalettes.c */
 extern int maxundoes;			/* in cvundoes */
 extern int pref_mv_shift_and_arrow_skip;         /* in metricsview.c */
 extern int pref_mv_control_shift_and_arrow_skip; /* in metricsview.c */
+extern int mv_antialias;                         /* in metricsview.c */
 extern int prefer_cjk_encodings;	/* in parsettf */
 extern int onlycopydisplayed, copymetadata, copyttfinstr;
 extern struct cvshows CVShows;
@@ -469,6 +470,7 @@ static struct prefs_list {
 	{ "OFLibAutomagicPreview", pr_int, &oflib_automagic_preview, NULL, NULL, '\0', NULL, 1, NULL },
 	{ "DefaultMVWidth", pr_int, &mv_width, NULL, NULL, '\0', NULL, 1, NULL },
 	{ "DefaultMVHeight", pr_int, &mv_height, NULL, NULL, '\0', NULL, 1, NULL },
+	{ "DefaultMVAntiAlias", pr_int, &mv_antialias, NULL, NULL, '\0', NULL, 1, NULL },
 	{ "DefaultBVWidth", pr_int, &bv_width, NULL, NULL, '\0', NULL, 1, NULL },
 	{ "DefaultBVHeight", pr_int, &bv_height, NULL, NULL, '\0', NULL, 1, NULL },
 	{ "AnchorControlPixelSize", pr_int, &aa_pixelsize, NULL, NULL, '\0', NULL, 1, NULL },

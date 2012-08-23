@@ -49,7 +49,7 @@ extern void PIChangePoint(struct gidata *ci);
 extern void PI_Destroy(struct dlistnode *node);
 
 int ItalicConstrained=true;
-int cv_auto_goto = true;
+int cv_auto_goto = false;
 float arrowAmount=1;
 float arrowAccelFactor=10.;
 float snapdistance=3.5;
@@ -3433,11 +3433,11 @@ static void CVInfoDrawText(CharView *cv, GWindow pixmap ) {
     GDrawDrawBiText8(pixmap,MAG_DATA,ybase,buffer,-1,NULL,fg);
     GDrawDrawBiText8(pixmap,LAYER_DATA,ybase,
 /* GT: Guide layer, make it short */
-		cv->b.drawmode==dm_grid ?                      _("Guide") :
+		cv->b.drawmode==dm_grid ?                      _("Guide layer is active") :
 /* GT: Background, make it short */
-		cv->b.layerheads[cv->b.drawmode]->background ? _("Back") :
+		cv->b.layerheads[cv->b.drawmode]->background ? _("Back layer is active") :
 /* GT: Foreground, make it short */
-								_("Fore"),
+								_("Fore layer is active"),
 	    -1,NULL,fg);
     if ( cv->coderange!=cr_none ) {
 	GDrawDrawBiText8(pixmap,CODERANGE_DATA,ybase,
