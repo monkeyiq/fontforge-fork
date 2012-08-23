@@ -2521,7 +2521,6 @@ static int PrefsSubSet_Ok(GGadget *g, GEvent *e) {
     struct pref_data *p = GDrawGetUserData(GGadgetGetWindow(g));
     struct prefs_list* plist = p->plist;
     struct prefs_list* pl = plist;
-    printf("PrefsSubSet_Ok() plist:%p\n", plist );
     int i=0,j=0;
     int err=0, enc;
     const unichar_t *ret;
@@ -2605,7 +2604,6 @@ void PrefsSubSetDlg(CharView *cv,char* windowTitle,struct prefs_list* plist) {
     char buf[20];
     char *tempstr;
 
-    printf("PrefsSubSetDlg() plist:%p\n", plist );
     PrefsInit();
     MfArgsInit();
 
@@ -2654,7 +2652,6 @@ void PrefsSubSetDlg(CharView *cv,char* windowTitle,struct prefs_list* plist) {
 
     
     for ( i=0, pl=plist; pl->name; ++i, ++pl ) {
-	printf("name:%s\n", pl->name );
 
 	    plabel[gc].text = (unichar_t *) _(pl->name);
 	    plabel[gc].text_is_1byte = true;
@@ -2826,7 +2823,6 @@ void PrefsSubSetDlg(CharView *cv,char* windowTitle,struct prefs_list* plist) {
     harray[6] = 0;
     harray[7] = 0;
 
-    printf("gc:%d\n", gc );
     gcd[gc].gd.pos.x = 30-3;
     gcd[gc].gd.pos.y = y+5-3;
     gcd[gc].gd.pos.width = -1;
