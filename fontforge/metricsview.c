@@ -3734,6 +3734,21 @@ return;
     GDrawRequestExpose(mv->v,NULL,true);
 }
 
+static void adjustWidgetByOffset( GGadget *target, double dir ) {
+    char buf[100];
+    unichar_t *end;
+    double wval = u_strtod(_GGadgetGetTitle(target),&end);
+    printf("adjustWidgetByOffset() old:%f new:%f\n", wval, wval+dir );
+    wval += dir;
+    snprintf(buf,99,"%.0f",wval);
+    GGadgetSetTitle8(target, buf);
+    GEvent event;
+    event.type=et_controlevent;
+    event.u.control.subtype = et_textchanged;
+    GGadgetDispatchEvent(target,&event);
+}
+
+
 static void MVChar(MetricsView *mv,GEvent *event) {
     if ( event->u.chr.keysym=='s' &&
 	    (event->u.chr.state&ksm_control) &&
@@ -3791,6 +3806,8 @@ static void MVChar(MetricsView *mv,GEvent *event) {
 	    unichar_t *end;
 	    double val = u_strtod(_GGadgetGetTitle(active),&end);
 	    if (isValidInt(end)) {
+		int i=0;
+		char buf[100];
 		int dir = ( event->u.chr.keysym == GK_Up || event->u.chr.keysym==GK_KP_Up ) ? 1 : -1;
 		if( event->u.chr.state&ksm_control && event->u.chr.state&ksm_shift ) {
 		    dir *= pref_mv_control_shift_and_arrow_skip;
@@ -3798,14 +3815,44 @@ static void MVChar(MetricsView *mv,GEvent *event) {
 		else if( event->u.chr.state&ksm_shift ) {
 		    dir *= pref_mv_shift_and_arrow_skip;
 		}
+		for(i=0; mv->perchar[i].lbearing; i++) {
+//		    printf("i:%d active:%p lb:%p\n",i,active,mv->perchar[i].lbearing);
+		    if( active == mv->perchar[i].lbearing ) {
+			adjustWidgetByOffset(mv->perchar[i].width,dir);
+			/* GGadget *target = mv->perchar[i].width; */
+			/* unichar_t *end; */
+			/* double wval = u_strtod(_GGadgetGetTitle(target),&end); */
+			/* wval += dir; */
+			/* snprintf(buf,99,"%.0f",wval); */
+			/* GGadgetSetTitle8(target, buf); */
+			/* event->type=et_controlevent; */
+			/* event->u.control.subtype = et_textchanged; */
+			/* GGadgetDispatchEvent(target,event); */
+		    }
+		}
+		// adjusting the width will add to the left and right bearing.
+		// so we need to make width jump by twice the offset
+		for(i=0; mv->perchar[i].lbearing; i++) {
+		    if( active == mv->perchar[i].width ) {
+			dir*=2;
+		    }
+		}
 		val += dir;
-		char buf[100];
 		snprintf(buf,99,"%.0f",val);
 		GGadgetSetTitle8(active, buf);
 
 		event->type=et_controlevent;
 		event->u.control.subtype = et_textchanged;
 		GGadgetDispatchEvent(active,event);
+
+		for(i=0; mv->perchar[i].lbearing; i++) {
+//		    printf("i:%d active:%p lb:%p\n",i,active,mv->perchar[i].lbearing);
+		    if( active == mv->perchar[i].width ) {
+//			printf("active is width, setting lbearing up dir/2\n");
+			adjustWidgetByOffset(mv->perchar[i].lbearing,dir/2);
+		    }
+		}
+		
 	    }
     }
     if ( event->u.chr.keysym == GK_Up || event->u.chr.keysym==GK_KP_Up ||
