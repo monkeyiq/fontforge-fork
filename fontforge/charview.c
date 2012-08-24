@@ -10563,7 +10563,7 @@ static void _CharViewCreate(CharView *cv, SplineChar *sc, FontView *fv,int enc) 
     cv->showdebugchanges = CVShows.showdebugchanges;
 
     cv->infoh = 13;
-    cv->rulerh = 26;
+    cv->rulerh = 16;
 
     GDrawGetSize(cv->gw,&pos);
     memset(&gd,0,sizeof(gd));
