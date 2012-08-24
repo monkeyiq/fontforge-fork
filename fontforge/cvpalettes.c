@@ -218,7 +218,6 @@ static void CVMenuTool(GWindow gw,struct gmenuitem *mi,GEvent *e) {
     CVToolsSetCursor(cv,0,NULL);
 }
 
-static void CVChangeSpiroMode(CharView *cv);
 static void CVMenuSpiroSet(GWindow gw,struct gmenuitem *mi,GEvent *e) {
     CharView *cv = (CharView *) GDrawGetUserData(gw);
     CVChangeSpiroMode(cv);
@@ -1035,7 +1034,7 @@ static void SCCheckForSSToOptimize(SplineChar *sc, SplineSet *ss,int order2) {
     }
 }
 
-static void CVChangeSpiroMode(CharView *cv) {
+void CVChangeSpiroMode(CharView *cv) {
     if ( hasspiro() ) {
 	cv->b.sc->inspiro = !cv->b.sc->inspiro;
 	cv->showing_tool = cvt_none;
