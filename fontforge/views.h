@@ -1207,4 +1207,5 @@ extern char *GlyphSetFromSelection(SplineFont *sf,int def_layer,char *current);
 extern void ME_ListCheck(GGadget *g,int r, int c, SplineFont *sf);
 extern void ME_SetCheckUnique(GGadget *g,int r, int c, SplineFont *sf);
 extern void ME_ClassCheckUnique(GGadget *g,int r, int c, SplineFont *sf);
+extern void PI_Destroy(struct dlistnode *node);
 #endif	/* _VIEWS_H */
