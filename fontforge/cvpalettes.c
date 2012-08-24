@@ -1991,6 +1991,7 @@ static void CVLRemoveEdit(CharView *cv, int save) {
 	GDrawRequestExpose(cvlayers,NULL,false);
 
 	layerinfo.rename_active = 0;
+	CVInfoDrawText(cv,cv->gw);
     }
 }
 
@@ -2483,6 +2484,7 @@ return;
     if (cvlayers)  GDrawRequestExpose(cvlayers,NULL,false);
     if ( dm!=cv->b.drawmode )
         GDrawRequestExpose(cv->gw,NULL,false); /* the logo (where the scrollbars join) shows what layer we are in */
+    CVInfoDrawText(cv,cv->gw);
 }
 
 static int cvlayers_e_h(GWindow gw, GEvent *event) {
