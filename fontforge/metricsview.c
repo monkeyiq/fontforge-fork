@@ -238,7 +238,7 @@ return;
 	}
     }
     si = -1;
-    printf("subexpose() mode:%d bg:%d\n", mv->reversed_render, mv->viewbg );
+//    printf("subexpose() mode:%d bg:%d\n", mv->reversed_render, mv->viewbg );
     for ( i=0; i<mv->glyphcnt; ++i ) {
 	if ( mv->perchar[i].selected ) si = i;
 	x = mv->perchar[i].dx-mv->xoff;
@@ -258,7 +258,7 @@ return;
 	    x += mv->perchar[i].kernafter-mv->perchar[i].xoff;
 	else
 	    x += mv->perchar[i].xoff;
-	printf("i:%d mv->bdf:%p\n", i, mv->bdf );
+//	printf("i:%d mv->bdf:%p\n", i, mv->bdf );
 	bdfc = mv->bdf==NULL ?	BDFPieceMealCheck(mv->show,mv->glyphs[i].sc->orig_pos) :
 				BDFGetMergedChar( mv->bdf->glyphs[mv->glyphs[i].sc->orig_pos]);
 	if ( bdfc==NULL )
@@ -313,7 +313,7 @@ return;
 	    base.width = width;
 	    base.height = height;
 	    if ( mv->pixelsize_set_by_window || mv->scale_index==SCALE_INDEX_NORMAL ) {
-		printf("using GDrawDrawGlyph()\n");
+//		printf("using GDrawDrawGlyph()\n");
 		GDrawDrawGlyph(pixmap,&gi,NULL,x,y);
 	    }
 	    else

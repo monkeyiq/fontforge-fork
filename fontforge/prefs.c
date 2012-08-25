@@ -94,6 +94,7 @@ extern int maxundoes;			/* in cvundoes */
 extern int pref_mv_shift_and_arrow_skip;         /* in metricsview.c */
 extern int pref_mv_control_shift_and_arrow_skip; /* in metricsview.c */
 extern int mv_antialias;                         /* in metricsview.c */
+extern int mv_type;                              /* in metricsview.c */
 extern int prefer_cjk_encodings;	/* in parsettf */
 extern int onlycopydisplayed, copymetadata, copyttfinstr;
 extern struct cvshows CVShows;
@@ -468,7 +469,8 @@ static struct prefs_list {
 	{ "FCDirPlacement", pr_int, &gfc_dirplace, NULL, NULL, '\0', NULL, 1, NULL },
 	{ "FCBookmarks", pr_string, &gfc_bookmarks, NULL, NULL, '\0', NULL, 1, NULL },
 	{ "OFLibAutomagicPreview", pr_int, &oflib_automagic_preview, NULL, NULL, '\0', NULL, 1, NULL },
-	{ "DefaultMVWidth", pr_int, &mv_width, NULL, NULL, '\0', NULL, 1, NULL },
+	{ "DefaultMVType",   pr_int, &mv_type, NULL, NULL, '\0', NULL, 1, NULL },
+	{ "DefaultMVWidth",  pr_int, &mv_width, NULL, NULL, '\0', NULL, 1, NULL },
 	{ "DefaultMVHeight", pr_int, &mv_height, NULL, NULL, '\0', NULL, 1, NULL },
 	{ "DefaultMVAntiAlias", pr_int, &mv_antialias, NULL, NULL, '\0', NULL, 1, NULL },
 	{ "DefaultBVWidth", pr_int, &bv_width, NULL, NULL, '\0', NULL, 1, NULL },
