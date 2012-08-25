@@ -3410,21 +3410,35 @@ Hotkey* HotkeyParse( Hotkey*hk, const char* t );
 int     HotkeyMatches( Hotkey* hk, GEvent *event );
 
 Hotkey* HotkeyParse( Hotkey *hk, const char* t ) {
+//    printf("HotkeyParse() t:%s\n", t );
     memset( hk, 0, sizeof(Hotkey));
     if( !t )
 	return hk;
     if( !strlen(t) )
 	return hk;
+    
+    if( startswith( t, "alt+" )) {
+	t+=strlen("alt+");
+	hk->state = ksm_alt;
+    }
     if( t[0] >= 'a' && t[0] <= 'z' )
 	hk->keysym = t[0];
     if( t[0] >= '0' && t[0] <= '9' )
 	hk->keysym = t[0];
+//    printf("HotkeyParse() state:%d keysym:%d\n", hk->state, hk->keysym );
     return hk;
 }
 
 int HotkeyMatches( Hotkey* hk, GEvent *event ) {
 
     if( event->u.chr.autorepeat )
+	return 0;
+
+    printf("HotkeyMatches() hk state:%d keysym:%d   event state:%d keysym:%d\n",
+	   hk->state, hk->keysym,
+	   event->u.chr.state, event->u.chr.keysym );
+    
+    if( hk->state && hk->state != event->u.chr.state )
 	return 0;
     
     if( hk->keysym ) {
@@ -3514,6 +3528,46 @@ void CVHotkeyFuncZoomOut(CharView *cv,GEvent *event) {
 void CVHotkeyFuncZoomIn(CharView *cv,GEvent *event) {
     _CVMenuScale(cv, MID_ZoomIn);
 }
+static void CVSwitchToTab(CharView *cv,int tnum ) {
+    if( tnum >= cv->former_cnt )
+	return;
+    
+    SplineFont *sf = cv->b.fv->sf;
+    char* n = cv->former_names[tnum];
+    int unienc = UniFromName(n,sf->uni_interp,cv->b.fv->map->enc);
+    CVChangeChar(cv,unienc);
+}
+
+void CVHotkeyFuncShowTab0(CharView *cv,GEvent *event) {
+    CVSwitchToTab( cv, 0 );
+}
+void CVHotkeyFuncShowTab1(CharView *cv,GEvent *event) {
+    CVSwitchToTab( cv, 1 );
+}
+void CVHotkeyFuncShowTab2(CharView *cv,GEvent *event) {
+    CVSwitchToTab( cv, 2 );
+}
+void CVHotkeyFuncShowTab3(CharView *cv,GEvent *event) {
+    CVSwitchToTab( cv, 3 );
+}
+void CVHotkeyFuncShowTab4(CharView *cv,GEvent *event) {
+    CVSwitchToTab( cv, 4 );
+}
+void CVHotkeyFuncShowTab5(CharView *cv,GEvent *event) {
+    CVSwitchToTab( cv, 5 );
+}
+void CVHotkeyFuncShowTab6(CharView *cv,GEvent *event) {
+    CVSwitchToTab( cv, 6 );
+}
+void CVHotkeyFuncShowTab7(CharView *cv,GEvent *event) {
+    CVSwitchToTab( cv, 7 );
+}
+void CVHotkeyFuncShowTab8(CharView *cv,GEvent *event) {
+    CVSwitchToTab( cv, 8 );
+}
+void CVHotkeyFuncShowTab9(CharView *cv,GEvent *event) {
+    CVSwitchToTab( cv, 9 );
+}
 
 
 
@@ -3521,6 +3575,16 @@ void CVHotkeyFuncZoomIn(CharView *cv,GEvent *event) {
  * Keep all the functions and their names in a table for easy selection. 
  */
 CVHotkey CVHotkeys[] = {
+    { "CharView.Hotkey.Show.Tab0",         CVHotkeyFuncShowTab0 },
+    { "CharView.Hotkey.Show.Tab1",         CVHotkeyFuncShowTab1 },
+    { "CharView.Hotkey.Show.Tab2",         CVHotkeyFuncShowTab2 },
+    { "CharView.Hotkey.Show.Tab3",         CVHotkeyFuncShowTab3 },
+    { "CharView.Hotkey.Show.Tab4",         CVHotkeyFuncShowTab4 },
+    { "CharView.Hotkey.Show.Tab5",         CVHotkeyFuncShowTab5 },
+    { "CharView.Hotkey.Show.Tab6",         CVHotkeyFuncShowTab6 },
+    { "CharView.Hotkey.Show.Tab7",         CVHotkeyFuncShowTab7 },
+    { "CharView.Hotkey.Show.Tab8",         CVHotkeyFuncShowTab8 },
+    { "CharView.Hotkey.Show.Tab9",         CVHotkeyFuncShowTab9 },
     { "CharView.Hotkey.Tool.Zoom",         CVHotkeyFuncSwitchToZoom    },
     { "CharView.Hotkey.Tool.Ruler",        CVHotkeyFuncSwitchToRuler   },
     { "CharView.Hotkey.Tool.Pointer",      CVHotkeyFuncSwitchToPointer },
@@ -3539,8 +3603,8 @@ CVHotkey CVHotkeys[] = {
     { "CharView.Hotkey.Tool.Knife",        CVHotkeyFuncSwitchToPointKnife },
     { "CharView.Hotkey.Zoom.Out",          CVHotkeyFuncZoomOut },
     { "CharView.Hotkey.Zoom.In",           CVHotkeyFuncZoomIn  },
-    { NULL, NULL }
     
+    { NULL, NULL }
 };
 
 

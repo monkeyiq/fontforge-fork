@@ -1055,3 +1055,12 @@ int u_endswith(const unichar_t *haystack,const unichar_t *needle) {
     unichar_t* p = u_strstr( haystack + haylen - nedlen, needle );
     return p == ( haystack + haylen - nedlen );
 }
+
+int startswith(const char *haystack,const char *needle) {
+    if( strlen(needle) > strlen(haystack) )
+	return 0;
+    
+    int rc = strncmp( haystack, needle, strlen(needle));
+    return rc == 0;
+}
+
