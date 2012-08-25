@@ -136,5 +136,6 @@ extern char *copytolower(const char *);
 extern int endswith(const char *haystack,const char *needle);
 extern int endswithi(const char *haystack,const char *needle);
 extern int endswithi_partialExtension( const char *haystack,const char *needle);
+extern int u_endswith(const unichar_t *haystack,const unichar_t *needle);
 
 #endif
