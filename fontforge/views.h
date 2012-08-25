@@ -1212,5 +1212,6 @@ extern void ME_SetCheckUnique(GGadget *g,int r, int c, SplineFont *sf);
 extern void ME_ClassCheckUnique(GGadget *g,int r, int c, SplineFont *sf);
 
 extern void CVToolsRedraw();
+extern void CVChangeSpiroMode(CharView *cv);
 
 #endif	/* _VIEWS_H */

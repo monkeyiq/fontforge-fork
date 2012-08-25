@@ -3483,18 +3483,62 @@ void CVHotkeyFuncSwitchToPointCorner(CharView *cv,GEvent *event) {
 void CVHotkeyFuncSwitchToPointTangent(CharView *cv,GEvent *event) {
     CVSelectTool( cv, cvt_tangent );
 }
+void CVHotkeyFuncSwitchToPointFreehand(CharView *cv,GEvent *event) {
+    CVSelectTool( cv, cvt_freehand );
+}
+void CVHotkeyFuncSwitchToPointPen(CharView *cv,GEvent *event) {
+    CVSelectTool( cv, cvt_pen );
+}
+void CVHotkeyFuncSwitchToPointSpiroToggle(CharView *cv,GEvent *event) {
+    CVChangeSpiroMode( cv );
+//    CVSelectTool( cv, cvt_spiro );
+}
+void CVHotkeyFuncSwitchToPointSpiroG4(CharView *cv,GEvent *event) {
+    CVSelectTool( cv, cvt_spirog4 );
+}
+void CVHotkeyFuncSwitchToPointSpiroCorner(CharView *cv,GEvent *event) {
+    CVSelectTool( cv, cvt_spirocorner );
+}
+void CVHotkeyFuncSwitchToPointSpiroLeft(CharView *cv,GEvent *event) {
+    CVSelectTool( cv, cvt_spiroleft );
+}
+void CVHotkeyFuncSwitchToPointSpiroRight(CharView *cv,GEvent *event) {
+    CVSelectTool( cv, cvt_spiroright );
+}
+void CVHotkeyFuncSwitchToPointKnife(CharView *cv,GEvent *event) {
+    CVSelectTool( cv, cvt_knife );
+}
+void CVHotkeyFuncZoomOut(CharView *cv,GEvent *event) {
+    _CVMenuScale(cv, MID_ZoomOut);
+}
+void CVHotkeyFuncZoomIn(CharView *cv,GEvent *event) {
+    _CVMenuScale(cv, MID_ZoomIn);
+}
+
+
+
 /**
  * Keep all the functions and their names in a table for easy selection. 
  */
 CVHotkey CVHotkeys[] = {
-    { "CharView.Hotkey.Tool.Zoom",    CVHotkeyFuncSwitchToZoom    },
-    { "CharView.Hotkey.Tool.Ruler",   CVHotkeyFuncSwitchToRuler   },
-    { "CharView.Hotkey.Tool.Pointer", CVHotkeyFuncSwitchToPointer },
-    { "CharView.Hotkey.Tool.Hand",    CVHotkeyFuncSwitchToHand    },
+    { "CharView.Hotkey.Tool.Zoom",         CVHotkeyFuncSwitchToZoom    },
+    { "CharView.Hotkey.Tool.Ruler",        CVHotkeyFuncSwitchToRuler   },
+    { "CharView.Hotkey.Tool.Pointer",      CVHotkeyFuncSwitchToPointer },
+    { "CharView.Hotkey.Tool.Hand",         CVHotkeyFuncSwitchToHand    },
     { "CharView.Hotkey.Tool.PointCurve",   CVHotkeyFuncSwitchToPointCurve   },
     { "CharView.Hotkey.Tool.PointHVCurve", CVHotkeyFuncSwitchToPointHVCurve },
     { "CharView.Hotkey.Tool.PointCorner",  CVHotkeyFuncSwitchToPointCorner  },
     { "CharView.Hotkey.Tool.PointTangent", CVHotkeyFuncSwitchToPointTangent },
+    { "CharView.Hotkey.Tool.Freehand",     CVHotkeyFuncSwitchToPointFreehand },
+    { "CharView.Hotkey.Tool.Pen",          CVHotkeyFuncSwitchToPointPen },
+    { "CharView.Hotkey.Tool.SpiroToggle",  CVHotkeyFuncSwitchToPointSpiroToggle },
+    { "CharView.Hotkey.Tool.SpiroG4",      CVHotkeyFuncSwitchToPointSpiroG4 },
+    { "CharView.Hotkey.Tool.SpiroCorner",  CVHotkeyFuncSwitchToPointSpiroCorner },
+    { "CharView.Hotkey.Tool.SpiroLeft",    CVHotkeyFuncSwitchToPointSpiroLeft },
+    { "CharView.Hotkey.Tool.SpiroRight",   CVHotkeyFuncSwitchToPointSpiroRight },
+    { "CharView.Hotkey.Tool.Knife",        CVHotkeyFuncSwitchToPointKnife },
+    { "CharView.Hotkey.Zoom.Out",          CVHotkeyFuncZoomOut },
+    { "CharView.Hotkey.Zoom.In",           CVHotkeyFuncZoomIn  },
     { NULL, NULL }
     
 };
