@@ -3487,14 +3487,14 @@ void CVHotkeyFuncSwitchToPointTangent(CharView *cv,GEvent *event) {
  * Keep all the functions and their names in a table for easy selection. 
  */
 CVHotkey CVHotkeys[] = {
-    { "CharView.HotkeyToolZoom",    CVHotkeyFuncSwitchToZoom    },
-    { "CharView.HotkeyToolRuler",   CVHotkeyFuncSwitchToRuler   },
-    { "CharView.HotkeyToolPointer", CVHotkeyFuncSwitchToPointer },
-    { "CharView.HotkeyToolHand",    CVHotkeyFuncSwitchToHand    },
-    { "CharView.HotkeyToolPointCurve",   CVHotkeyFuncSwitchToPointCurve   },
-    { "CharView.HotkeyToolPointHVCurve", CVHotkeyFuncSwitchToPointHVCurve },
-    { "CharView.HotkeyToolPointCorner",  CVHotkeyFuncSwitchToPointCorner  },
-    { "CharView.HotkeyToolPointTangent", CVHotkeyFuncSwitchToPointTangent },
+    { "CharView.Hotkey.Tool.Zoom",    CVHotkeyFuncSwitchToZoom    },
+    { "CharView.Hotkey.Tool.Ruler",   CVHotkeyFuncSwitchToRuler   },
+    { "CharView.Hotkey.Tool.Pointer", CVHotkeyFuncSwitchToPointer },
+    { "CharView.Hotkey.Tool.Hand",    CVHotkeyFuncSwitchToHand    },
+    { "CharView.Hotkey.Tool.PointCurve",   CVHotkeyFuncSwitchToPointCurve   },
+    { "CharView.Hotkey.Tool.PointHVCurve", CVHotkeyFuncSwitchToPointHVCurve },
+    { "CharView.Hotkey.Tool.PointCorner",  CVHotkeyFuncSwitchToPointCorner  },
+    { "CharView.Hotkey.Tool.PointTangent", CVHotkeyFuncSwitchToPointTangent },
     { NULL, NULL }
     
 };
