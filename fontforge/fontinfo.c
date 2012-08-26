@@ -42,6 +42,8 @@ extern GBox _ggadget_Default_Box;
 #include <unistd.h>
 #include <time.h>
 
+static void TTFSetupOS2Metrics( struct gfi_data *d, struct pfminfo info );
+
 static int last_aspect=0;
 
 GTextInfo emsizes[] = {
@@ -1756,6 +1758,7 @@ static struct langstyle *stylelist[] = {regs, meds, books, demibolds, bolds, hea
 #define CID_CPageDefault	16120
 #define CID_CodePageRanges	16121
 #define CID_CodePageList	16122
+#define CID_MET_RESET           16123
 
 const char *UI_TTFNameIds(int id) {
     int i;
@@ -3977,6 +3980,33 @@ static int GFI_SetLayers(struct gfi_data *d) {
 return( changed );
 }
 
+static int GFI_MET_RESET(GGadget *g, GEvent *e) {
+    if ( e->type==et_controlevent && e->u.control.subtype == et_buttonactivate ) {
+	GWindow gw = GGadgetGetWindow(g);
+	struct gfi_data *d = GDrawGetUserData(gw);
+
+	struct pfminfo* info = &(d->sf->pfminfo);
+
+	info->linegap = 0;
+	info->vlinegap = 0;
+	info->os2_typolinegap = 0;
+	info->winascent_add = 1;
+	info->os2_winascent = 0;
+	info->windescent_add = 1;
+	info->os2_windescent = 0;
+	info->typoascent_add = 1;
+	info->os2_typoascent = 0;
+	info->typodescent_add = 1;
+	info->os2_typodescent = 0;
+	info->hheadascent_add = 1;
+	info->hhead_ascent = 0;
+	info->hheaddescent_add = 1;
+	info->hhead_descent = 0;
+	
+	TTFSetupOS2Metrics(d,d->sf->pfminfo);
+    }
+}
+
 static int GFI_OK(GGadget *g, GEvent *e) {
     if ( e->type==et_controlevent && e->u.control.subtype == et_buttonactivate ) {
 	GWindow gw = GGadgetGetWindow(g);
@@ -4770,6 +4800,53 @@ static int GFI_SubSuperDefault(GGadget *g, GEvent *e) {
 return( true );
 }
 
+static void TTFSetupOS2Metrics( struct gfi_data *d, struct pfminfo info ) {
+    char buffer[10]; unichar_t ubuf[10];
+
+    sprintf( buffer, "%d", info.linegap );
+    uc_strcpy(ubuf,buffer);
+    GGadgetSetTitle(GWidgetGetControl(d->gw,CID_LineGap),ubuf);
+    sprintf( buffer, "%d", info.vlinegap );
+    uc_strcpy(ubuf,buffer);
+    GGadgetSetTitle(GWidgetGetControl(d->gw,CID_VLineGap),ubuf);
+    sprintf( buffer, "%d", info.os2_typolinegap );
+    uc_strcpy(ubuf,buffer);
+    GGadgetSetTitle(GWidgetGetControl(d->gw,CID_TypoLineGap),ubuf);
+
+    GGadgetSetChecked(GWidgetGetControl(d->gw,CID_WinAscentIsOff),info.winascent_add);
+    GFI_AsDsLab(d,CID_WinAscentIsOff,true);
+    sprintf( buffer, "%d", info.os2_winascent );
+    uc_strcpy(ubuf,buffer);
+    GGadgetSetTitle(GWidgetGetControl(d->gw,CID_WinAscent),ubuf);
+    GGadgetSetChecked(GWidgetGetControl(d->gw,CID_WinDescentIsOff),info.windescent_add);
+    GFI_AsDsLab(d,CID_WinDescentIsOff,true);
+    sprintf( buffer, "%d", info.os2_windescent );
+    uc_strcpy(ubuf,buffer);
+    GGadgetSetTitle(GWidgetGetControl(d->gw,CID_WinDescent),ubuf);
+
+    GGadgetSetChecked(GWidgetGetControl(d->gw,CID_TypoAscentIsOff),info.typoascent_add);
+    GFI_AsDsLab(d,CID_TypoAscentIsOff,true);
+    sprintf( buffer, "%d", info.os2_typoascent );
+    uc_strcpy(ubuf,buffer);
+    GGadgetSetTitle(GWidgetGetControl(d->gw,CID_TypoAscent),ubuf);
+    GGadgetSetChecked(GWidgetGetControl(d->gw,CID_TypoDescentIsOff),info.typodescent_add);
+    GFI_AsDsLab(d,CID_TypoDescentIsOff,true);
+    sprintf( buffer, "%d", info.os2_typodescent );
+    uc_strcpy(ubuf,buffer);
+    GGadgetSetTitle(GWidgetGetControl(d->gw,CID_TypoDescent),ubuf);
+
+    GGadgetSetChecked(GWidgetGetControl(d->gw,CID_HHeadAscentIsOff),info.hheadascent_add);
+    GFI_AsDsLab(d,CID_HHeadAscentIsOff,true);
+    sprintf( buffer, "%d", info.hhead_ascent );
+    uc_strcpy(ubuf,buffer);
+    GGadgetSetTitle(GWidgetGetControl(d->gw,CID_HHeadAscent),ubuf);
+    GGadgetSetChecked(GWidgetGetControl(d->gw,CID_HHeadDescentIsOff),info.hheaddescent_add);
+    GFI_AsDsLab(d,CID_HHeadDescentIsOff,true);
+    sprintf( buffer, "%d", info.hhead_descent );
+    uc_strcpy(ubuf,buffer);
+    GGadgetSetTitle(GWidgetGetControl(d->gw,CID_HHeadDescent),ubuf);
+}
+
 static void TTFSetup(struct gfi_data *d) {
     struct pfminfo info;
     char buffer[10]; unichar_t ubuf[10];
@@ -4791,14 +4868,16 @@ static void TTFSetup(struct gfi_data *d) {
 	char *n = cu_copy(_GGadgetGetTitle(GWidgetGetControl(d->gw,CID_Fontname)));
 	if ( *aend=='\0' && *dend=='\0' ) {
 	    if ( info.linegap==0 )
-		info.linegap = rint(.09*(av+dv));
+	    	info.linegap = rint(.09*(av+dv));
 	    if ( info.vlinegap==0 )
-		info.vlinegap = info.linegap;
+	    	info.vlinegap = info.linegap;
 	    if ( info.os2_typolinegap==0 )
-		info.os2_typolinegap = info.linegap;
+	    	info.os2_typolinegap = info.linegap;
 	}
 	lg = info.linegap; vlg = info.vlinegap; tlg = info.os2_typolinegap;
 	SFDefaultOS2Info(&info,d->sf,n);
+	printf("lg:%d def.lg:%d  tlg:%d   def.tlg:%d\n",
+	       lg, info.linegap, tlg, info.os2_typolinegap );
 	if ( lg != 0 )
 	    info.linegap = lg;
 	if ( vlg!= 0 )
@@ -4806,6 +4885,10 @@ static void TTFSetup(struct gfi_data *d) {
 	if ( tlg!=0 )
 	    info.os2_typolinegap = tlg;
 	free(n);
+
+	/* info.linegap = 0; */
+	/* info.vlinegap = 0; */
+	/* info.os2_typolinegap = 0; */
     }
 
     if ( info.weight>0 && info.weight<=900 && info.weight%100==0 )
@@ -4869,48 +4952,8 @@ static void TTFSetup(struct gfi_data *d) {
 
     d->ttf_set = true;
     /* FSType is already set */
-    sprintf( buffer, "%d", info.linegap );
-    uc_strcpy(ubuf,buffer);
-    GGadgetSetTitle(GWidgetGetControl(d->gw,CID_LineGap),ubuf);
-    sprintf( buffer, "%d", info.vlinegap );
-    uc_strcpy(ubuf,buffer);
-    GGadgetSetTitle(GWidgetGetControl(d->gw,CID_VLineGap),ubuf);
-    sprintf( buffer, "%d", info.os2_typolinegap );
-    uc_strcpy(ubuf,buffer);
-    GGadgetSetTitle(GWidgetGetControl(d->gw,CID_TypoLineGap),ubuf);
-
-    GGadgetSetChecked(GWidgetGetControl(d->gw,CID_WinAscentIsOff),info.winascent_add);
-    GFI_AsDsLab(d,CID_WinAscentIsOff,true);
-    sprintf( buffer, "%d", info.os2_winascent );
-    uc_strcpy(ubuf,buffer);
-    GGadgetSetTitle(GWidgetGetControl(d->gw,CID_WinAscent),ubuf);
-    GGadgetSetChecked(GWidgetGetControl(d->gw,CID_WinDescentIsOff),info.windescent_add);
-    GFI_AsDsLab(d,CID_WinDescentIsOff,true);
-    sprintf( buffer, "%d", info.os2_windescent );
-    uc_strcpy(ubuf,buffer);
-    GGadgetSetTitle(GWidgetGetControl(d->gw,CID_WinDescent),ubuf);
-
-    GGadgetSetChecked(GWidgetGetControl(d->gw,CID_TypoAscentIsOff),info.typoascent_add);
-    GFI_AsDsLab(d,CID_TypoAscentIsOff,true);
-    sprintf( buffer, "%d", info.os2_typoascent );
-    uc_strcpy(ubuf,buffer);
-    GGadgetSetTitle(GWidgetGetControl(d->gw,CID_TypoAscent),ubuf);
-    GGadgetSetChecked(GWidgetGetControl(d->gw,CID_TypoDescentIsOff),info.typodescent_add);
-    GFI_AsDsLab(d,CID_TypoDescentIsOff,true);
-    sprintf( buffer, "%d", info.os2_typodescent );
-    uc_strcpy(ubuf,buffer);
-    GGadgetSetTitle(GWidgetGetControl(d->gw,CID_TypoDescent),ubuf);
-
-    GGadgetSetChecked(GWidgetGetControl(d->gw,CID_HHeadAscentIsOff),info.hheadascent_add);
-    GFI_AsDsLab(d,CID_HHeadAscentIsOff,true);
-    sprintf( buffer, "%d", info.hhead_ascent );
-    uc_strcpy(ubuf,buffer);
-    GGadgetSetTitle(GWidgetGetControl(d->gw,CID_HHeadAscent),ubuf);
-    GGadgetSetChecked(GWidgetGetControl(d->gw,CID_HHeadDescentIsOff),info.hheaddescent_add);
-    GFI_AsDsLab(d,CID_HHeadDescentIsOff,true);
-    sprintf( buffer, "%d", info.hhead_descent );
-    uc_strcpy(ubuf,buffer);
-    GGadgetSetTitle(GWidgetGetControl(d->gw,CID_HHeadDescent),ubuf);
+    TTFSetupOS2Metrics(d,info);
+    
 }
 
 static char *mathparams[] = {
@@ -7435,7 +7478,7 @@ void FontInfo(SplineFont *sf,int deflayer,int defaspect,int sync) {
     GTabInfo aspects[26], vaspects[6], lkaspects[3];
     GGadgetCreateData mgcd[10], ngcd[19], psgcd[30], tngcd[8],
 	pgcd[12], vgcd[19], pangcd[23], comgcd[4], txgcd[23], floggcd[4],
-	mfgcd[8], mcgcd[8], szgcd[19], mkgcd[7], metgcd[29], vagcd[3], ssgcd[23],
+	mfgcd[8], mcgcd[8], szgcd[19], mkgcd[7], metgcd[50], vagcd[3], ssgcd[23],
 	xugcd[8], dgcd[6], ugcd[6], gaspgcd[5], gaspgcd_def[2], lksubgcd[2][4],
 	lkgcd[2], lkbuttonsgcd[15], cgcd[12], lgcd[20], msgcd[7], ssngcd[8],
 	woffgcd[8], privategcd_def[4];
@@ -7446,7 +7489,7 @@ void FontInfo(SplineFont *sf,int deflayer,int defaspect,int sync) {
 	    lkbox[7], cbox[6], lbox[8], msbox[3], ssboxes[4], woffbox[2];
     GGadgetCreateData *marray[7], *marray2[9], *narray[29], *narray2[7], *narray3[3],
 	*xuarray[20], *psarray[10], *psarray2[21], *psarray4[10],
-	*pparray[6], *vradio[5], *varray[38], *metarray[46],
+	*pparray[6], *vradio[5], *varray[38], *metarray[70],
 	*ssarray[58], *panarray[40], *comarray[3], *flogarray[3],
 	*mkarray[6], *msarray[6],
 	*txarray[5], *txarray2[30],
@@ -7460,7 +7503,7 @@ void FontInfo(SplineFont *sf,int deflayer,int defaspect,int sync) {
 	*ssvarray[4], *woffarray[16];
     GTextInfo mlabel[10], nlabel[18], pslabel[30], tnlabel[7],
 	plabel[12], vlabel[19], panlabel[22], comlabel[3], txlabel[23],
-	mflabel[8], mclabel[8], szlabel[17], mklabel[7], metlabel[28],
+	mflabel[8], mclabel[8], szlabel[17], mklabel[7], metlabel[50],
 	sslabel[23], xulabel[8], dlabel[5], ulabel[3], gasplabel[5],
 	lkbuttonslabel[14], clabel[11], floglabel[3], llabel[20], mslabel[7],
 	ssnlabel[7], wofflabel[8], privatelabel_def[3];
@@ -8749,6 +8792,25 @@ return;
     metgcd[i].gd.popup_msg = metgcd[17].gd.popup_msg;
     metarray[j++] = &metgcd[i];
     metgcd[i++].creator = GTextFieldCreate;
+
+    metarray[j++] = GCD_Glue;
+    metarray[j++] = NULL;
+
+    metgcd[i].gd.pos.x = 10;
+    metgcd[i].gd.pos.y = metgcd[i-1].gd.pos.y+26+6;
+    metgcd[i].gd.pos.width = -1;
+    metgcd[i].gd.pos.height = 26;
+    metgcd[i].gd.flags = gg_visible | gg_enabled;
+    metlabel[i].text = (unichar_t *) _("Reset");
+    metlabel[i].text_is_1byte = true;
+    metlabel[i].text_in_resource = true;
+    metgcd[i].gd.label = &metlabel[i];
+    metgcd[i].gd.handle_controlevent = GFI_MET_RESET;
+    metgcd[i].gd.cid = CID_MET_RESET;
+    metarray[j++] = &metgcd[i];
+    metgcd[i++].creator = GButtonCreate;
+
+    metarray[j++] = GCD_Glue;
     metarray[j++] = GCD_Glue;
     metarray[j++] = NULL;
     metarray[j++] = GCD_Glue; metarray[j++] = GCD_Glue; metarray[j++] = GCD_Glue;
