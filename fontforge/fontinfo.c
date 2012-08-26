@@ -4886,9 +4886,9 @@ static void TTFSetup(struct gfi_data *d) {
 	    info.os2_typolinegap = tlg;
 	free(n);
 
-	/* info.linegap = 0; */
-	/* info.vlinegap = 0; */
-	/* info.os2_typolinegap = 0; */
+	info.linegap = 0;
+	info.vlinegap = 0;
+	info.os2_typolinegap = 0;
     }
 
     if ( info.weight>0 && info.weight<=900 && info.weight%100==0 )
