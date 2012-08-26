@@ -613,5 +613,6 @@ extern void AutoKern2BuildClasses(SplineFont *sf,int layer,
 	int separation, int min_kern, int touching, int only_closer,
 	int autokern,
 	real good_enough);
+extern char* CVGetThemeHotkeyForTool( enum cvtools t, int inspiro );
 
 #endif

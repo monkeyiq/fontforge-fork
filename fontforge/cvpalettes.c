@@ -1122,6 +1122,15 @@ return;			/* Not available in order2 spline mode */
 		else if ( pos==cvt_spiroright )
 		    msg = _("Add a next constraint point (sometimes like a tangent)");
 	    }
+	    const int buffersz = 200;
+	    char buffer[buffersz+1];
+	    strncpy(buffer,msg,buffersz);
+
+	    char* hk = CVGetThemeHotkeyForTool( pos, cv->b.sc->inspiro && hasspiro() );
+	    if(hk) {
+		snprintf(buffer,buffersz,"%s\nHotkey %s",msg,hk);
+	    }
+	    msg = buffer;
 	    GGadgetPreparePopup8(cvtools,msg);
 	} else if ( pos!=cv->pressed_tool || cv->had_control != (((event->u.mouse.state&ksm_control) || styluscntl)?1:0) )
 	    cv->pressed_display = cvt_none;

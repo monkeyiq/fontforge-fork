@@ -3405,6 +3405,7 @@ static void CVDoFindInFontView(CharView *cv) {
 typedef struct hotkey {
     uint16 state;
     uint16 keysym;
+    char   hktext[31];
 } Hotkey;
 Hotkey* HotkeyParse( Hotkey*hk, const char* t );
 int     HotkeyMatches( Hotkey* hk, GEvent *event );
@@ -3416,11 +3417,16 @@ Hotkey* HotkeyParse( Hotkey *hk, const char* t ) {
 	return hk;
     if( !strlen(t) )
 	return hk;
+    strncpy( hk->hktext, t, 30 );
     
     if( startswith( t, "alt+" )) {
 	t+=strlen("alt+");
 	hk->state = ksm_alt;
     }
+    if( t[0] >= '!' && t[0] <= '@' )
+	hk->keysym = t[0];
+    if( t[0] >= '[' && t[0] <= '`' )
+	hk->keysym = t[0];
     if( t[0] >= 'a' && t[0] <= 'z' )
 	hk->keysym = t[0];
     if( t[0] >= '0' && t[0] <= '9' )
@@ -3434,9 +3440,9 @@ int HotkeyMatches( Hotkey* hk, GEvent *event ) {
     if( event->u.chr.autorepeat )
 	return 0;
 
-    printf("HotkeyMatches() hk state:%d keysym:%d   event state:%d keysym:%d\n",
-	   hk->state, hk->keysym,
-	   event->u.chr.state, event->u.chr.keysym );
+    /* printf("HotkeyMatches() hk state:%d keysym:%d   event state:%d keysym:%d\n", */
+    /* 	   hk->state, hk->keysym, */
+    /* 	   event->u.chr.state, event->u.chr.keysym ); */
     
     if( hk->state && hk->state != event->u.chr.state )
 	return 0;
@@ -3448,11 +3454,27 @@ int HotkeyMatches( Hotkey* hk, GEvent *event ) {
     return 0;
 }
 
+typedef struct cvhotkey;
+
 /**
  * A function that is invoked when the user presses a collection of
  * keys that they have defined should perform an action
  */
 typedef void (*CVHotkeyFunc)(CharView *cv,GEvent *event);
+
+/**
+ * This is a callback that is called when the hotkey definition is
+ * parsed from the theme file. The callback can be used to setup other
+ * displays, for example to let the user know what user defined key
+ * will activate a specific tool or function.
+ */
+typedef void (*CVHotkeySetupFunc)(struct cvhotkey *hk);
+
+/**
+ * By default we dont need to do anything.
+ */
+void CVHotkeySetupFuncDefault(struct cvhotkey *hk) {
+}
 
 /**
  * A cvhotkey holds the text descrition of a hotkey in keydesc, a
@@ -3464,10 +3486,13 @@ typedef void (*CVHotkeyFunc)(CharView *cv,GEvent *event);
  * the resources are read from the user's theme file.
  */
 typedef struct cvhotkey {
-    const char*  keydesc;
-    CVHotkeyFunc func;
-    Hotkey       hk;
+    const char*       keydesc;
+    CVHotkeyFunc      func;
+    CVHotkeySetupFunc setupfunc;
+    int               udata;
+    Hotkey            hk;
 } CVHotkey;
+
 
 /********
  * These are a bunch of simple functions that can be called by
@@ -3485,22 +3510,35 @@ void CVHotkeyFuncSwitchToPointer(CharView *cv,GEvent *event) {
 void CVHotkeyFuncSwitchToHand(CharView *cv,GEvent *event) {
     CVSelectTool( cv, cvt_hand );
 }
-void CVHotkeyFuncSwitchToPointCurve(CharView *cv,GEvent *event) {
-    CVSelectTool( cv, cvt_curve );
-}
-void CVHotkeyFuncSwitchToPointHVCurve(CharView *cv,GEvent *event) {
-    CVSelectTool( cv, cvt_hvcurve );
-}
-void CVHotkeyFuncSwitchToPointCorner(CharView *cv,GEvent *event) {
-    CVSelectTool( cv, cvt_corner );
-}
-void CVHotkeyFuncSwitchToPointTangent(CharView *cv,GEvent *event) {
-    CVSelectTool( cv, cvt_tangent );
-}
 void CVHotkeyFuncSwitchToPointFreehand(CharView *cv,GEvent *event) {
     CVSelectTool( cv, cvt_freehand );
 }
+static int inspiro(CharView *cv) {
+    return cv->b.sc->inspiro && hasspiro();
+}
+void CVHotkeyFuncSwitchToPointCurve(CharView *cv,GEvent *event) {
+    if(inspiro(cv))
+	return;
+    CVSelectTool( cv, cvt_curve );
+}
+void CVHotkeyFuncSwitchToPointHVCurve(CharView *cv,GEvent *event) {
+    if(inspiro(cv))
+	return;
+    CVSelectTool( cv, cvt_hvcurve );
+}
+void CVHotkeyFuncSwitchToPointCorner(CharView *cv,GEvent *event) {
+    if(inspiro(cv))
+	return;
+    CVSelectTool( cv, cvt_corner );
+}
+void CVHotkeyFuncSwitchToPointTangent(CharView *cv,GEvent *event) {
+    if(inspiro(cv))
+	return;
+    CVSelectTool( cv, cvt_tangent );
+}
 void CVHotkeyFuncSwitchToPointPen(CharView *cv,GEvent *event) {
+    if(inspiro(cv))
+	return;
     CVSelectTool( cv, cvt_pen );
 }
 void CVHotkeyFuncSwitchToPointSpiroToggle(CharView *cv,GEvent *event) {
@@ -3508,15 +3546,28 @@ void CVHotkeyFuncSwitchToPointSpiroToggle(CharView *cv,GEvent *event) {
 //    CVSelectTool( cv, cvt_spiro );
 }
 void CVHotkeyFuncSwitchToPointSpiroG4(CharView *cv,GEvent *event) {
+    if(!inspiro(cv))
+	return;
     CVSelectTool( cv, cvt_spirog4 );
 }
+void CVHotkeyFuncSwitchToPointSpiroG2(CharView *cv,GEvent *event) {
+    if(!inspiro(cv))
+	return;
+    CVSelectTool( cv, cvt_spirog2 );
+}
 void CVHotkeyFuncSwitchToPointSpiroCorner(CharView *cv,GEvent *event) {
+    if(!inspiro(cv))
+	return;
     CVSelectTool( cv, cvt_spirocorner );
 }
 void CVHotkeyFuncSwitchToPointSpiroLeft(CharView *cv,GEvent *event) {
+    if(!inspiro(cv))
+	return;
     CVSelectTool( cv, cvt_spiroleft );
 }
 void CVHotkeyFuncSwitchToPointSpiroRight(CharView *cv,GEvent *event) {
+    if(!inspiro(cv))
+	return;
     CVSelectTool( cv, cvt_spiroright );
 }
 void CVHotkeyFuncSwitchToPointKnife(CharView *cv,GEvent *event) {
@@ -3569,42 +3620,97 @@ void CVHotkeyFuncShowTab9(CharView *cv,GEvent *event) {
     CVSwitchToTab( cv, 9 );
 }
 
+#define SPIROOFFSET 100
+    
+typedef struct toolidtohotkey 
+{
+    int toolid;
+    char* hk;
+} ToolIDToHotkey;
+
+ToolIDToHotkey ToolIDToHotkeys[] = {
+ { cvt_pointer, 0 },
+ { cvt_magnify, 0 },
+ { cvt_freehand, 0 },
+ { cvt_hand, 0 },
+ { cvt_curve, 0 },
+ { cvt_hvcurve, 0 },
+ { cvt_corner, 0 },
+ { cvt_tangent, 0 },
+ { cvt_pen, 0 },
+ { cvt_spiro, 0 },
+ { cvt_knife, 0 },
+ { cvt_ruler, 0 },
+ { cvt_scale, 0 },
+ { cvt_flip, 0 },
+ { cvt_rotate, 0 },
+ { cvt_skew, 0 },
+ { cvt_3d_rotate, 0 },
+ { cvt_perspective, 0 },
+ { cvt_rect, 0 },
+ { cvt_poly, 0 },
+ { cvt_elipse, 0 },
+ { cvt_star, 0 },
+ { cvt_minify, 0 },
+ { cvt_spirog4+SPIROOFFSET,     0 },
+ { cvt_spirog2+SPIROOFFSET,     0 },
+ { cvt_spirocorner+SPIROOFFSET, 0 },
+ { cvt_spiroleft+SPIROOFFSET,   0 },
+ { cvt_spiroright+SPIROOFFSET,  0 },
+ { 0, 0 }
+};
+
+void CVHotkeySetupFuncTool(struct cvhotkey *hk) {
+//    printf("CVHotkeySetupFuncTool() udata:%d\n", hk->udata );
+    ToolIDToHotkeys[hk->udata].hk = hk->hk.hktext;
+}
+char* CVGetThemeHotkeyForTool( enum cvtools t, int inspiro ) {
+//    printf("CVGetThemeHotkeyForTool() t:%d spiro:%d\n", t,inspiro );
+    if( t == cvt_none ) {
+	return 0;
+    }
+    if( inspiro && t>=cvt_spirog4 && t<=cvt_spiroright )
+	t+=SPIROOFFSET;
+    return ToolIDToHotkeys[t].hk;
+}
+
 
 
 /**
  * Keep all the functions and their names in a table for easy selection. 
  */
 CVHotkey CVHotkeys[] = {
-    { "CharView.Hotkey.Show.Tab0",         CVHotkeyFuncShowTab0 },
-    { "CharView.Hotkey.Show.Tab1",         CVHotkeyFuncShowTab1 },
-    { "CharView.Hotkey.Show.Tab2",         CVHotkeyFuncShowTab2 },
-    { "CharView.Hotkey.Show.Tab3",         CVHotkeyFuncShowTab3 },
-    { "CharView.Hotkey.Show.Tab4",         CVHotkeyFuncShowTab4 },
-    { "CharView.Hotkey.Show.Tab5",         CVHotkeyFuncShowTab5 },
-    { "CharView.Hotkey.Show.Tab6",         CVHotkeyFuncShowTab6 },
-    { "CharView.Hotkey.Show.Tab7",         CVHotkeyFuncShowTab7 },
-    { "CharView.Hotkey.Show.Tab8",         CVHotkeyFuncShowTab8 },
-    { "CharView.Hotkey.Show.Tab9",         CVHotkeyFuncShowTab9 },
-    { "CharView.Hotkey.Tool.Zoom",         CVHotkeyFuncSwitchToZoom    },
-    { "CharView.Hotkey.Tool.Ruler",        CVHotkeyFuncSwitchToRuler   },
-    { "CharView.Hotkey.Tool.Pointer",      CVHotkeyFuncSwitchToPointer },
-    { "CharView.Hotkey.Tool.Hand",         CVHotkeyFuncSwitchToHand    },
-    { "CharView.Hotkey.Tool.PointCurve",   CVHotkeyFuncSwitchToPointCurve   },
-    { "CharView.Hotkey.Tool.PointHVCurve", CVHotkeyFuncSwitchToPointHVCurve },
-    { "CharView.Hotkey.Tool.PointCorner",  CVHotkeyFuncSwitchToPointCorner  },
-    { "CharView.Hotkey.Tool.PointTangent", CVHotkeyFuncSwitchToPointTangent },
-    { "CharView.Hotkey.Tool.Freehand",     CVHotkeyFuncSwitchToPointFreehand },
-    { "CharView.Hotkey.Tool.Pen",          CVHotkeyFuncSwitchToPointPen },
-    { "CharView.Hotkey.Tool.SpiroToggle",  CVHotkeyFuncSwitchToPointSpiroToggle },
-    { "CharView.Hotkey.Tool.SpiroG4",      CVHotkeyFuncSwitchToPointSpiroG4 },
-    { "CharView.Hotkey.Tool.SpiroCorner",  CVHotkeyFuncSwitchToPointSpiroCorner },
-    { "CharView.Hotkey.Tool.SpiroLeft",    CVHotkeyFuncSwitchToPointSpiroLeft },
-    { "CharView.Hotkey.Tool.SpiroRight",   CVHotkeyFuncSwitchToPointSpiroRight },
-    { "CharView.Hotkey.Tool.Knife",        CVHotkeyFuncSwitchToPointKnife },
-    { "CharView.Hotkey.Zoom.Out",          CVHotkeyFuncZoomOut },
-    { "CharView.Hotkey.Zoom.In",           CVHotkeyFuncZoomIn  },
+    { "CharView.Hotkey.Show.Tab0",         CVHotkeyFuncShowTab0, 0 },
+    { "CharView.Hotkey.Show.Tab1",         CVHotkeyFuncShowTab1, 0 },
+    { "CharView.Hotkey.Show.Tab2",         CVHotkeyFuncShowTab2, 0 },
+    { "CharView.Hotkey.Show.Tab3",         CVHotkeyFuncShowTab3, 0 },
+    { "CharView.Hotkey.Show.Tab4",         CVHotkeyFuncShowTab4, 0 },
+    { "CharView.Hotkey.Show.Tab5",         CVHotkeyFuncShowTab5, 0 },
+    { "CharView.Hotkey.Show.Tab6",         CVHotkeyFuncShowTab6, 0 },
+    { "CharView.Hotkey.Show.Tab7",         CVHotkeyFuncShowTab7, 0 },
+    { "CharView.Hotkey.Show.Tab8",         CVHotkeyFuncShowTab8, 0 },
+    { "CharView.Hotkey.Show.Tab9",         CVHotkeyFuncShowTab9, 0 },
+    { "CharView.Hotkey.Tool.Zoom",         CVHotkeyFuncSwitchToZoom,             CVHotkeySetupFuncTool, cvt_magnify },
+    { "CharView.Hotkey.Tool.Ruler",        CVHotkeyFuncSwitchToRuler,            CVHotkeySetupFuncTool, cvt_ruler   },
+    { "CharView.Hotkey.Tool.Pointer",      CVHotkeyFuncSwitchToPointer,          CVHotkeySetupFuncTool, cvt_pointer },
+    { "CharView.Hotkey.Tool.Hand",         CVHotkeyFuncSwitchToHand,             CVHotkeySetupFuncTool, cvt_hand },
+    { "CharView.Hotkey.Tool.PointCurve",   CVHotkeyFuncSwitchToPointCurve,       CVHotkeySetupFuncTool, cvt_curve },
+    { "CharView.Hotkey.Tool.PointHVCurve", CVHotkeyFuncSwitchToPointHVCurve,     CVHotkeySetupFuncTool, cvt_hvcurve },
+    { "CharView.Hotkey.Tool.PointCorner",  CVHotkeyFuncSwitchToPointCorner,      CVHotkeySetupFuncTool, cvt_corner },
+    { "CharView.Hotkey.Tool.PointTangent", CVHotkeyFuncSwitchToPointTangent,     CVHotkeySetupFuncTool, cvt_tangent },
+    { "CharView.Hotkey.Tool.Freehand",     CVHotkeyFuncSwitchToPointFreehand,    CVHotkeySetupFuncTool, cvt_freehand },
+    { "CharView.Hotkey.Tool.Pen",          CVHotkeyFuncSwitchToPointPen,         CVHotkeySetupFuncTool, cvt_pen },
+    { "CharView.Hotkey.Tool.SpiroToggle",  CVHotkeyFuncSwitchToPointSpiroToggle, CVHotkeySetupFuncTool, cvt_spiro },
+    { "CharView.Hotkey.Tool.SpiroG4",      CVHotkeyFuncSwitchToPointSpiroG4,     CVHotkeySetupFuncTool, cvt_spirog4    +SPIROOFFSET },
+    { "CharView.Hotkey.Tool.SpiroG2",      CVHotkeyFuncSwitchToPointSpiroG2,     CVHotkeySetupFuncTool, cvt_spirog2    +SPIROOFFSET },
+    { "CharView.Hotkey.Tool.SpiroCorner",  CVHotkeyFuncSwitchToPointSpiroCorner, CVHotkeySetupFuncTool, cvt_spirocorner+SPIROOFFSET },
+    { "CharView.Hotkey.Tool.SpiroLeft",    CVHotkeyFuncSwitchToPointSpiroLeft,   CVHotkeySetupFuncTool, cvt_spiroleft  +SPIROOFFSET },
+    { "CharView.Hotkey.Tool.SpiroRight",   CVHotkeyFuncSwitchToPointSpiroRight,  CVHotkeySetupFuncTool, cvt_spiroright +SPIROOFFSET },
+    { "CharView.Hotkey.Tool.Knife",        CVHotkeyFuncSwitchToPointKnife,       CVHotkeySetupFuncTool, cvt_knife },
+    { "CharView.Hotkey.Zoom.Out",          CVHotkeyFuncZoomOut, 0 },
+    { "CharView.Hotkey.Zoom.In",           CVHotkeyFuncZoomIn, 0  },
     
-    { NULL, NULL }
+    { NULL, NULL, NULL, 0 }
 };
 
 
@@ -11039,6 +11145,9 @@ return;
     CVHotkey* cvhk = CVHotkeys;
     for( i=0; cvhk->keydesc; cvhk++ ) {
 	HotkeyParse( &(cvhk->hk), GResourceFindString(cvhk->keydesc));
+	if(cvhk->setupfunc) {
+	    cvhk->setupfunc(cvhk);
+	}
     }
 }
 
