@@ -3930,11 +3930,10 @@ void CVInfoDrawText(CharView *cv, GWindow pixmap ) {
 	    strncpy(layername,cv->b.sc->parent->layers[idx].name,layernamesz);
 	}
     }
-    snprintf( buffer, buffersz, "Active Layer: %s (%s)",
+    snprintf( buffer, buffersz, "Active Layer: %s (%s)", layername,
 	      ( cv->b.drawmode==dm_grid ? _("Guide") :
-		cv->b.layerheads[cv->b.drawmode]->background ? _("Back") :
-		_("Fore") ),
-	      layername );
+		cv->b.layerheads[cv->b.drawmode]->background ?
+		_("Back") : _("Fore") ) );
     GDrawDrawBiText8(pixmap,LAYER_DATA,ybase,buffer,-1,NULL,fg);
     if ( cv->coderange!=cr_none ) {
 	GDrawDrawBiText8(pixmap,CODERANGE_DATA,ybase,
