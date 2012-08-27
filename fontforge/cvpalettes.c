@@ -2506,8 +2506,6 @@ static int CVLScanForItem(int x, int y, int *col) {
     *col=-1;
     if ( x>0 && x<viscol+cw ) *col=CID_VBase;
     else if ( x>=colorcol && x<colorcol+cw ) *col=CID_CBase;
-    else if ( (layerscols & LSHOW_CUBIC) && x>=quadcol && x<quadcol+cw ) *col=CID_QBase;
-    else if ( (layerscols & LSHOW_FG) && x>=fgcol && x<fgcol+cw ) *col=CID_FBase;
     else if ( x>=editcol ) *col=CID_EBase;
     /**
      * These two allow the curve type and foreground/background to be
