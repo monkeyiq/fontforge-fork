@@ -28,18 +28,6 @@
 #define _CONFIG_FONTFORGE_H_
 
 
-/* Making FontForge handle more of the capabilities of type3 & svg fonts is not*/
-/*  something most people will want. It wastes space too. So I thought I'd    */
-/*  make it conditional. 						      */
-/*									      */
-/* #define FONTFORGE_CONFIG_TYPE3					      */
-/*									      */
-/* It allows people to have images in a font, multiple layers, strokes, fills */
-/*  transparencies, etc. (type3 doesn't support transparency, svg doesn't do  */
-/*  images)								      */
-/* Can be set from configure --with-multilayer				      */
-
-
 /* Apple suggests using a sfnt version of 'true' for fonts designed for use   */
 /*  only on a mac (windows refuses such fonts). I generally prefer to have a  */
 /*  font work everywhere, so normally ff produces fonts with version 1.0      */
@@ -55,19 +43,6 @@
 /*									      */
 /* #define FONTFORGE_CONFIG_APPLE_UNICODE_NAMES				      */
 /*									      */
-
-
-/* Sometimes I want to create a glyph which is a word, and this command       */
-/*  makes that easy                                                           */
-/*									      */
-/* #define FONTFORGE_CONFIG_PASTEAFTER					      */
-/*									      */
-/* The paste after command pastes the contents of the clipboard into the      */
-/*  current glyph, translates that by the advance width of the current glyph  */
-/*  and increments the advance width by the advance width of the clipboard    */
-/*									      */
-/* Can be set from configure --enable-pasteafter			      */
-
 
 
 /* Someone asked for encoding GB12345. Neither libiconv nor iconv supports it.*/
@@ -134,8 +109,6 @@
 /*  can be a problem with large (CJK, UNICODE) fonts.                         */
 /*									      */
 #define FONTFORGE_CONFIG_USE_DOUBLE
-/* #define FONTFORGE_CONFIG_USE_LONGDOUBLE				      */
-/*									      */
 
 
 /* In addition to placing snippets of charstrings into subrs, I tried adding  */
