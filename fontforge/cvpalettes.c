@@ -1911,7 +1911,7 @@ return;
     }
     editcol = nextcol;
     nextcol += column_width;
-
+    printf("editcol:%d nextcol:%d cw:%d\n", editcol,nextcol,column_width);
      /* loop once per layer, where 0==guides, 1=back, 2=fore, etc */
     for ( i=(event->u.expose.rect.y-layer_header_height)/layer_height;
 	    i<(event->u.expose.rect.y+event->u.expose.rect.height+layer_height-layer_header_height)/layer_height;
@@ -1922,7 +1922,7 @@ return;
         y = layer_header_height + i*layer_height;
         if ( y<layer_header_height ) continue;
 
-         /* draw quadratic/cubic toggle */
+	/* draw quadratic/cubic toggle */
         if ( layerscols & LSHOW_CUBIC ) {
             if ( layerinfo.mo_layer==ll && layerinfo.mo_col==CID_QBase ) {
                 r.x = quadcol; r.width = column_width;
@@ -1947,7 +1947,7 @@ return;
 	    GDrawDrawBiText8(pixmap, fgcol, y + yt,
 		    (char *) str,-1,NULL,GDrawGetDefaultForeground(NULL));
         }
-
+	
          /* draw layer thumbnail and label */
 	if ( ll==layerinfo.active ) {
             r.x = editcol; r.width = ww-r.x;
@@ -3053,6 +3053,7 @@ return( cvlayers );
     GGadgetGetSize(GWidgetGetControl(cvlayers,CID_VGrid),&size);
     layer_height = size.height;
     layerinfo.column_width = size.width;
+    layerinfo.column_width = 14;
 
     layerinfo.active = CVLayer(&cv->b); /* the index of the active layer */
     layerinfo.mo_col   = -2; /* -2 forces this variable to be updated. afterwords it will be -1 for nothing, or >=0 */
