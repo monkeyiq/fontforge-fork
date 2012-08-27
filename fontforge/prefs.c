@@ -2891,7 +2891,6 @@ struct prefs_list pointer_dialog_list[] = {
     PREFS_LIST_EMPTY
 };
 
-
 void PointerDlg(CharView *cv) {
     PrefsSubSetDlg( cv, _("Arrow Options"), pointer_dialog_list );
 }
