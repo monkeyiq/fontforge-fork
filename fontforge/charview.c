@@ -10787,6 +10787,8 @@ CharView *CharViewCreate(SplineChar *sc, FontView *fv,int enc) {
 
     cv->gw = gw = GDrawCreateTopWindow(NULL,&pos,cv_e_h,cv,&wattrs);
     free( (unichar_t *) wattrs.icon_title );
+    GDrawSetWindowTypeName(cv->gw, "CharView");
+    
 
     GDrawGetSize(GDrawGetRoot(screen_display),&zoom);
     zoom.x = CVPalettesWidth(); zoom.width -= zoom.x-10;
@@ -11269,56 +11271,6 @@ GResInfo charview_ri = {
     NULL,
     NULL
 };
-
-void dlist_pushfront( struct dlistnode** list, struct dlistnode* node ) {
-    if( *list ) {
-	node->next = *list;
-	node->next->prev = node;
-    }
-    *list = node;
-}
-
-int dlist_size( struct dlistnode** list ) {
-    struct dlistnode* node = *list;
-    int ret = 0;
-    for( ; node; node=node->next ) {
-	ret++;
-    }
-    return ret;
-}
-
-int dlist_isempty( struct dlistnode** list ) {
-    return *list == NULL;
-}
-
-void dlist_erase( struct dlistnode** list, struct dlistnode* node ) {
-    if( !node )
-	return;
-    if( *list = node ) {
-	*list = node->next;
-	if( node->next ) {
-	    node->next->prev = 0;
-	}
-		return 0;
-    }
-    if( node->prev ) {
-	node->prev->next = node->next;
-    }
-    if( node->next ) {
-	node->next->prev = node->prev;
-    }
-	
-}
-
-void dlist_foreach( struct dlistnode** list, dlist_foreach_func_type func )
-{
-    struct dlistnode* node = *list;
-    while( node ) {
-	struct dlistnode* t = node;
-	node = node->next;
-	func( node );
-    }
-}
 
 
 

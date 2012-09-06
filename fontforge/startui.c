@@ -1153,6 +1153,8 @@ int main( int argc, char **argv ) {
 	}
     }
 #endif
+    hotkeysLoad();
+    hotkeysSave();
 
     FF_SetUiInterface(&gdraw_ui_interface);
     FF_SetPrefsInterface(&gdraw_prefs_interface);

@@ -137,4 +137,10 @@ extern int endswith(const char *haystack,const char *needle);
 extern int endswithi(const char *haystack,const char *needle);
 extern int endswithi_partialExtension( const char *haystack,const char *needle);
 
+/**
+ * Remove trailing \n or \r from the given string. No memory allocations
+ * are performed, null is injected over these terminators to trim the string.
+ */
+extern char* chomp( char* p );
+
 #endif

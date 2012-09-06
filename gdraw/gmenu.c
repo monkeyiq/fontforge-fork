@@ -32,6 +32,7 @@
 #include <gkeysym.h>
 #include <utype.h>
 #include <gresource.h>
+#include "hotkeys.h"
 
 static GBox menubar_box = GBOX_EMPTY; /* Don't initialize here */
 static GBox menu_box = GBOX_EMPTY; /* Don't initialize here */
@@ -957,6 +958,88 @@ return( keysym );
 }
 #endif
 
+static int HKActionMatchesFirstPartOf( char* action, char* prefix ) {
+    char* pt = strchr(action,'.');
+    if( !pt )
+	return( 0==strcmp(action,prefix) );
+    
+    int l = pt - action;
+    if( strlen(prefix) < l )
+	return 0;
+    int rc = strncmp( action, prefix, l );
+    return rc == 0;
+}
+
+static char* HKActionPointerPastLeftmostKey( char* action ) {
+    char* pt = strchr(action,'.');
+    if( !pt )
+	return 0;
+    return pt + 1;
+}
+
+
+static GMenuItem *GMenuSearchActionRecursive( GWindow gw,
+					      GMenuItem *mi,
+					      char* action,
+					      GEvent *event,
+					      int call_moveto) {
+    
+    printf("GMenuSearchAction() action:%s\n", action );
+    int i;
+    for ( i=0; mi[i].ti.text!=NULL || mi[i].ti.image!=NULL || mi[i].ti.line; ++i ) {
+	if ( call_moveto && mi[i].moveto != NULL)
+	    (mi[i].moveto)(gw,&(mi[i]),event);
+
+	if ( mi[i].sub ) {
+	    if( HKActionMatchesFirstPartOf( action, u_to_c(mi[i].ti.text) )) {
+		char* subaction = HKActionPointerPastLeftmostKey(action);
+		printf("GMenuSearchAction() action:%s decending menu:%s\n", action, u_to_c(mi[i].ti.text) );
+		GMenuItem *ret = GMenuSearchActionRecursive(gw,mi[i].sub,subaction,event,call_moveto);
+		if ( ret!=NULL )
+		    return( ret );
+	    }
+	} else {
+	    printf("line:%d 1byte:%d in_resource:%d \n",
+		   mi[i].ti.line,
+		   mi[i].ti.text_is_1byte,
+		   mi[i].ti.text_in_resource );
+	    
+	    
+	    if( !mi[i].ti.text ) {
+		printf("no text...\n");
+	    } else {
+		printf("GMenuSearchAction() action:%s testing menu:%s\n", action, u_to_c(mi[i].ti.text) );
+		if( HKActionMatchesFirstPartOf( action, u_to_c(mi[i].ti.text) )) {
+		    printf("GMenuSearchAction() matching final menu part! action:%s\n", action );
+		    return &mi[i];
+		}
+	    }
+	}
+	
+    }
+return( NULL );
+}
+static GMenuItem *GMenuSearchAction( GWindow gw,
+				     GMenuItem *mi,
+				     char* action,
+				     GEvent *event,
+				     int call_moveto) {
+    char* windowType = GDrawGetWindowTypeName( gw );
+    if( !windowType )
+	return;
+    printf("GMenuSearchAction() windowtype:%s\n", windowType );
+    int actionlen = strlen(action);
+    int prefixlen = strlen(windowType) + 1 + strlen("Menu.");
+    if( actionlen < prefixlen ) {
+	return 0;
+    }
+    action += prefixlen;
+    GMenuItem * ret = GMenuSearchActionRecursive( gw, mi, action,
+						  event, call_moveto );
+    return ret;
+}
+
+
 static GMenuItem *GMenuSearchShortcut(GWindow gw, GMenuItem *mi, GEvent *event,
 	int call_moveto) {
     int i;
@@ -1536,7 +1619,8 @@ int GGadgetUndoMacEnglishOptionCombinations(GEvent *event) {
 return( keysym );
 }
 
-int GMenuBarCheckKey(GGadget *g, GEvent *event) {
+
+int GMenuBarCheckKey(GWindow top, GGadget *g, GEvent *event) {
     int i;
     GMenuBar *mb = (GMenuBar *) g;
     GMenuItem *mi;
@@ -1572,6 +1656,29 @@ return( true );
     if ( event->u.chr.state&(menumask&~ksm_shift) ||
 	    event->u.chr.keysym>=GK_Special ||
 	    mb->any_unmasked_shortcuts ) {
+
+	printf("looking for hotkey in new system...keysym:%d\n", event->u.chr.keysym );
+	Hotkey* hk = hotkeyFindByEvent( top, event );
+	if( hk ) {
+	    printf("hotkey found by event! hk:%p\n", hk );
+	    mi = GMenuSearchAction(mb->g.base,mb->mi,hk->action,event,mb->child==NULL);
+	    if ( mi ) {
+		if ( mi->ti.checkable && !mi->ti.disabled )
+		    mi->ti.checked = !mi->ti.checked;
+		if ( mi->invoke!=NULL && !mi->ti.disabled )
+		    (mi->invoke)(mb->g.base,mi,NULL);
+		if ( mb->child != NULL )
+		    GMenuDestroy(mb->child);
+		return( true );
+	    } else {
+		printf("hotkey found for event must be a non menu action... action:%s\n", hk->action );
+		
+	    }
+	    
+	    printf("END hotkey found by event! hk:%p\n", hk );
+	}
+	
+	
 	mi = GMenuSearchShortcut(mb->g.base,mb->mi,event,mb->child==NULL);
 	if ( mi!=NULL ) {
 	    if ( mi->ti.checkable && !mi->ti.disabled )
