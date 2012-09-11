@@ -225,16 +225,91 @@ return;
     }
 
     if ( shortcut>=0xff00 && GDrawKeysyms[shortcut-0xff00] ) {
-	cu_strcpy(buffer,GDrawKeysyms[shortcut-0xff00]);
-	utf82u_strcpy(pt,dgettext(GMenuGetShortcutDomain(),buffer));
+    	cu_strcpy(buffer,GDrawKeysyms[shortcut-0xff00]);
+    	utf82u_strcpy(pt,dgettext(GMenuGetShortcutDomain(),buffer));
     } else {
-	*pt++ = islower(shortcut)?toupper(shortcut):shortcut;
-	*pt = '\0';
+    	*pt++ = islower(shortcut)?toupper(shortcut):shortcut;
+    	*pt = '\0';
     }
 }
 
+
 static void shorttext(GMenuItem *gi,unichar_t *buf) {
     _shorttext(gi->shortcut,gi->short_mask,buf);
+}
+
+int GMenuGetMenuPathRecurse( GMenuItem** stack,
+			     GMenuItem *basemi,
+			     GMenuItem *targetmi ) {
+    GMenuItem *mi = basemi;
+    int i;
+    for ( i=0; mi[i].ti.text!=NULL || mi[i].ti.image!=NULL || mi[i].ti.line; ++i ) {
+	if ( mi[i].sub ) {
+//	    printf("GMenuGetMenuPathRecurse() going down on %s\n", u_to_c(mi[i].ti.text));
+	    stack[0] = &mi[i];
+	    int rc = GMenuGetMenuPathRecurse( &stack[1], mi[i].sub, targetmi );
+	    if( rc == 1 )
+		return rc;
+	    stack[0] = 0;
+	}
+	if( mi[i].ti.text ) {
+//	    printf("GMenuGetMenuPathRecurse() inspecting %s %p %p\n", u_to_c(mi[i].ti.text),mi[i],targetmi);
+	    GMenuItem* cur = &mi[i];
+	    if( cur == targetmi ) {
+		stack[0] = cur;
+		return 1;
+	    }
+	}
+    }
+    return 0;
+}
+
+
+char* GMenuGetMenuPath( GMenuItem *basemi, GMenuItem *targetmi ) {
+    GMenuItem* stack[1024];
+    bzero(stack,sizeof(stack));
+    printf("GMenuGetMenuPath() base   %s\n", u_to_c(basemi->ti.text));
+    printf("GMenuGetMenuPath() target %s\n", u_to_c(targetmi->ti.text));
+
+    /* { */
+    /* 	int i=0; */
+    /* 	GMenuItem *mi = basemi; */
+    /* 	for ( i=0; mi[i].ti.text!=NULL || mi[i].ti.image!=NULL || mi[i].ti.line; ++i ) { */
+    /* 	    if( mi[i].ti.text ) { */
+    /* 		printf("GMenuGetMenuPath() xbase   %s\n", u_to_c(mi[i].ti.text)); */
+    /* 	    } */
+    /* 	} */
+    /* } */
+    printf("GMenuGetMenuPath() starting...\n");
+    
+    GMenuItem *mi = basemi;
+    int i;
+    for ( i=0; mi[i].ti.text!=NULL || mi[i].ti.image!=NULL || mi[i].ti.line; ++i ) {
+	if( mi[i].ti.text ) {
+	    bzero(stack,sizeof(stack));
+	    printf("GMenuGetMenuPath() xbase   %s\n", u_to_c(mi[i].ti.text));
+	    int rc = GMenuGetMenuPathRecurse( stack, &mi[i], targetmi );
+	    printf("GMenuGetMenuPath() rc   %d\n",  rc);
+	    if( stack[0] != 0 ) {
+		printf("GMenuGetMenuPath() have stack[0]...\n");
+		break;
+	    }
+	}
+    }
+    if( stack[0] == 0 ) {
+	return 0;
+    }
+    
+    static char buffer[PATH_MAX];
+    buffer[0] = '\0';
+    for( i=0; stack[i]; i++ ) {
+	if( i )
+	    strcat(buffer,".");
+	if( stack[i]->ti.text )
+	    cu_strcat(buffer,stack[i]->ti.text);
+//	printf("i %d  mi %s\n", i, u_to_c(stack[i]->ti.text));
+    }
+    return buffer;
 }
 
 static int GMenuDrawMacIcons(struct gmenu *m, Color fg, int ybase, int x, int mask ) {
@@ -427,7 +502,6 @@ static int GMenuDrawMenuLine(struct gmenu *m, GMenuItem *mi, int y,GWindow pixma
     h = GTextInfoDraw(pixmap,x,y,&mi->ti,m->font,
 	    (mi->ti.disabled || m->disabled )?m->box->disabled_foreground:fg,
 	    m->box->active_border,new.y+new.height);
-
     if ( mi->ti.checkable ) {
 	if ( mi->ti.checked )
 	    GMenuDrawCheckMark(m,fg,ybase,r2l);
@@ -439,12 +513,30 @@ static int GMenuDrawMenuLine(struct gmenu *m, GMenuItem *mi, int y,GWindow pixma
 	GMenuDrawArrow(m,ybase,r2l);
     else if ( mi->shortcut!=0 && (mi->short_mask&0xffe0)==0 && mac_menu_icons ) {
 	_shorttext(mi->shortcut,0,shortbuf);
-	width = GDrawGetBiTextWidth(pixmap,shortbuf,-1,-1,NULL) + GMenuMacIconsWidth(m,mi->short_mask);
+	uint16 short_mask = mi->short_mask;
+
+	if( m->menubar ) {
+	    short_mask = 0;
+	    uc_strcpy(shortbuf,"");
+	    printf("m->menubar: %p\n", m->menubar );
+	    printf("m->menubar->mi: %p\n", m->menubar->mi );
+	    printf("m->menubar->window: %p\n", m->menubar->g.base );
+	    Hotkey* hk = hotkeyFindByMenuPath( m->menubar->g.base,
+					       GMenuGetMenuPath( m->menubar->mi, mi ));
+	    printf("hk: %p\n", hk );
+	    if(hk) {
+		short_mask = hk->state;
+		uc_strcpy(shortbuf,hotkeyTextWithoutModifiers(hk->text));
+	    }
+	}
+	
+	width = GDrawGetBiTextWidth(pixmap,shortbuf,-1,-1,NULL);
+	width += GMenuMacIconsWidth(m,short_mask);
 	if ( r2l ) {
 	    int x = GDrawDrawBiText(pixmap,m->bp,ybase,shortbuf,-1,NULL,fg);
-	    GMenuDrawMacIcons(m,fg,ybase, x, mi->short_mask);
+	    GMenuDrawMacIcons(m,fg,ybase, x, short_mask);
 	} else {
-	    int x = GMenuDrawMacIcons(m,fg,ybase,m->rightedge-width, mi->short_mask);
+	    int x = GMenuDrawMacIcons(m,fg,ybase,m->rightedge-width, short_mask);
 	    GDrawDrawBiText(pixmap,x,ybase,shortbuf,-1,NULL,fg);
 	}
     } else if ( mi->shortcut!=0 ) {
@@ -1040,6 +1132,7 @@ static GMenuItem *GMenuSearchAction( GWindow gw,
 }
 
 
+
 static GMenuItem *GMenuSearchShortcut(GWindow gw, GMenuItem *mi, GEvent *event,
 	int call_moveto) {
     int i;
@@ -1618,6 +1711,7 @@ int GGadgetUndoMacEnglishOptionCombinations(GEvent *event) {
     }
 return( keysym );
 }
+
 
 
 int GMenuBarCheckKey(GWindow top, GGadget *g, GEvent *event) {

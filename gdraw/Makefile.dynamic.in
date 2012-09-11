@@ -5,6 +5,7 @@ exec_prefix = @exec_prefix@
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
+sharedir = $(prefix)/share/fontforge
 top_builddir = ..
 VPATH = @srcdir@
 bindir = @bindir@
@@ -37,7 +38,7 @@ libgdraw_OBJECTS =  choosericons.lo ctlvalues.lo drawboxborder.lo \
  ghvbox.lo gmatrixedit.lo gdrawable.lo gspacer.lo xkeysyms_unicode.lo hotkeys.lo
 
 Incs = -I$(top_srcdir)/inc -I../inc -I/usr/pkg/include -I/usr/pkg/include/giflib
-CFLAGS = @CFLAGS@ @CPPFLAGS@ $(Incs) @WFLAGS@ $(X_CFLAGS) -DNOTHREADS @DEFS@ -DLIBDIR='"$(libdir)"'
+CFLAGS = @CFLAGS@ @CPPFLAGS@ $(Incs) @WFLAGS@ $(X_CFLAGS) -DNOTHREADS @DEFS@  -DSHAREDIR='"$(sharedir)"' -DLIBDIR='"$(libdir)"'
 
 ../libgdraw.la: $(libgdraw_OBJECTS)
 	$(LIBTOOL) --mode=link $(CC) -no-undefined $(CFLAGS) -o ../libgdraw.la $(libgdraw_OBJECTS) \

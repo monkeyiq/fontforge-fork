@@ -40,6 +40,7 @@ typedef struct hotkey {
     char   action[HOTKEY_ACTION_MAX_SIZE+1];
     uint16 state;
     uint16 keysym;
+    int    isUserDefined;
     char   text[HOTKEY_TEXT_MAX_SIZE+1];
 } Hotkey;
 
@@ -47,7 +48,7 @@ extern void    hotkeysLoad();
 extern void    hotkeysSave();
 extern char*   hotkeysGetKeyDescriptionFromAction( char* action );
 extern Hotkey* hotkeyFindByEvent( GWindow w, GEvent *event );
-
+extern char*   hotkeyTextWithoutModifiers( char* hktext );
 
 #if 0
 

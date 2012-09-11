@@ -26,8 +26,10 @@
  */
 
 #include "hotkeys.h"
-struct dlistnode* hotkeys = 0;
+#include <locale.h>
 
+
+struct dlistnode* hotkeys = 0;
 
 
 static char *getHotkeyFilename(void) {
@@ -57,17 +59,12 @@ char* trimspaces( char* line ) {
     return line;
 }
 
-void hotkeysLoad()
+static void loadHotkeysFromFile( const char* filename, int isUserDefined ) 
 {
     char line[1100];
-    char* fn = getHotkeyFilename();
-    if( !fn ) {
-	fprintf(stderr,"Can not work out where your hotkey definition file is!\n");
-	return;
-    }
-    FILE* f = fopen(fn,"r");
+    FILE* f = fopen(filename,"r");
     if( !f ) {
-	fprintf(stderr,"Failed to open your hotkey definition file.\n");
+	fprintf(stderr,"Failed to open hotkey definition file: %s\n", filename );
 	return;
     }
 
@@ -86,13 +83,34 @@ void hotkeysLoad()
 	Hotkey* hk = gcalloc(1,sizeof(Hotkey));
 	strncpy( hk->action, line, HOTKEY_ACTION_MAX_SIZE );
 	HotkeyParse( hk, keydefinition );
+	hk->isUserDefined = isUserDefined;
 	printf("3. state:%d keysym:%d\n", hk->state, hk->keysym );
 	dlist_pushfront( &hotkeys, hk );
     }
+    fclose(f);
+}
+
+void hotkeysLoad()
+{
+    // FIXME: find out how to convert en_AU.UTF-8 that setlocale()
+    //   gives to its fallback of en_GB
+    char localefn[PATH_MAX+1];
+    snprintf(localefn,PATH_MAX,"%s/hotkeys/%s",
+	     SHAREDIR,setlocale(LC_MESSAGES, 0));
+    loadHotkeysFromFile( localefn, false );
+
+    char* fn = getHotkeyFilename();
+    if( !fn ) {
+	fprintf(stderr,"Can not work out where your hotkey definition file is!\n");
+	return;
+    }
+    loadHotkeysFromFile( fn, true );
 }
 
 static void hotkeysSaveCallback(Hotkey* hk,FILE* f) {
-    fprintf( f, "%s:%s\n", hk->action, hk->text );
+    if( hk->isUserDefined ) {
+	fprintf( f, "%s:%s\n", hk->action, hk->text );
+    }
 }
 
 
@@ -144,6 +162,30 @@ static int hotkeyHasMatchingWindowType( GWindow w, Hotkey* hk ) {
     return 0;
 }
 
+Hotkey* hotkeyFindByAction( char* action ) {
+    struct dlistnode* node = hotkeys;
+    for( ; node; node=node->next ) {
+	Hotkey* hk = (Hotkey*)node;
+	if(!strcmp(hk->action,action)) {
+	    return hk;
+	}
+    }
+    return 0;
+}
+
+
+Hotkey* hotkeyFindByMenuPath( GWindow w, char* path ) {
+
+    char* wt = GDrawGetWindowTypeName(w);
+    if(!wt)
+	return 0;
+
+    char line[PATH_MAX+1];
+    snprintf(line,PATH_MAX,"%s%s%s",wt, ".Menu.", path );
+    return(hotkeyFindByAction(line));
+}
+
+
     
 Hotkey* hotkeyFindByEvent( GWindow w, GEvent *event ) {
 
@@ -170,6 +212,18 @@ Hotkey* hotkeyFindByEvent( GWindow w, GEvent *event ) {
 	}
     }
     return 0;
+}
+
+char* hotkeyTextWithoutModifiers( char* hktext ) {
+    if( !strcmp( hktext, "no shortcut" )
+	|| !strcmp( hktext, "No shortcut" )
+	|| !strcmp( hktext, "No Shortcut" ))
+	return "";
+    
+    char* p = strrchr( hktext, '+' );
+    if( !p )
+	return hktext;
+    return p+1;
 }
 
 

@@ -872,7 +872,7 @@ return(0);
     }
 }
 
-void HotkeyParse( Hotkey* hk, char *shortcut ) {
+void HotkeyParse( Hotkey* hk, const char *shortcut ) {
     char *pt, *sh;
     int mask, temp, i;
 
