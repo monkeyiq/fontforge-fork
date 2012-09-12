@@ -268,6 +268,9 @@ int GMenuGetMenuPathRecurse( GMenuItem** stack,
 char* GMenuGetMenuPath( GMenuItem *basemi, GMenuItem *targetmi ) {
     GMenuItem* stack[1024];
     bzero(stack,sizeof(stack));
+    if( !targetmi->ti.text )
+	return 0;
+    
     printf("GMenuGetMenuPath() base   %s\n", u_to_c(basemi->ti.text));
     printf("GMenuGetMenuPath() target %s\n", u_to_c(targetmi->ti.text));
 
@@ -472,6 +475,15 @@ static void GMenuDrawDownArrow(struct gmenu *m, int ybase) {
     GDrawDrawLine(m->w,p[2].x-pt,p[2].y,p[0].x,p[0].y+pt,m->box->border_darkest);
 }
 
+static GMenuBar * getTopLevelMenubar( struct gmenu *m ) {
+    while( m->parent ) {
+	m = m->parent;
+    }
+
+    return m->menubar;
+}
+
+
 static int GMenuDrawMenuLine(struct gmenu *m, GMenuItem *mi, int y,GWindow pixmap) {
     unichar_t shortbuf[300];
     int as = GTextInfoGetAs(m->w,&mi->ti,m->font);
@@ -482,6 +494,10 @@ static int GMenuDrawMenuLine(struct gmenu *m, GMenuItem *mi, int y,GWindow pixma
     int r2l = false;
     int x;
 
+    printf("GMenuDrawMenuLine(top)\n");
+    if(mi->ti.text)
+	printf("GMenuDrawMenuLine() mi:%s\n",u_to_c(mi->ti.text));
+	
     new.x = m->tickoff; new.width = m->rightedge-m->tickoff;
     new.y = y; new.height = GTextInfoGetHeight(pixmap,&mi->ti,m->font);
     GDrawPushClip(pixmap,&new,&old);
@@ -511,18 +527,22 @@ static int GMenuDrawMenuLine(struct gmenu *m, GMenuItem *mi, int y,GWindow pixma
 
     if ( mi->sub!=NULL )
 	GMenuDrawArrow(m,ybase,r2l);
-    else if ( mi->shortcut!=0 && (mi->short_mask&0xffe0)==0 && mac_menu_icons ) {
+    else { // if ( mi->shortcut!=0 && (mi->short_mask&0xffe0)==0 && mac_menu_icons ) {
 	_shorttext(mi->shortcut,0,shortbuf);
 	uint16 short_mask = mi->short_mask;
 
-	if( m->menubar ) {
+	printf("m->menubar: %p\n", m->menubar );
+	printf("m->parent: %p\n", m->parent );
+	printf("m->toplevel: %p\n", getTopLevelMenubar(m));
+	    
+	GMenuBar* toplevel = getTopLevelMenubar(m);
+	if( toplevel ) {
 	    short_mask = 0;
 	    uc_strcpy(shortbuf,"");
-	    printf("m->menubar: %p\n", m->menubar );
-	    printf("m->menubar->mi: %p\n", m->menubar->mi );
-	    printf("m->menubar->window: %p\n", m->menubar->g.base );
-	    Hotkey* hk = hotkeyFindByMenuPath( m->menubar->g.base,
-					       GMenuGetMenuPath( m->menubar->mi, mi ));
+	    printf("m->menubar->mi: %p\n", toplevel->mi );
+	    printf("m->menubar->window: %p\n", toplevel->g.base );
+	    Hotkey* hk = hotkeyFindByMenuPath( toplevel->g.base,
+					       GMenuGetMenuPath( toplevel->mi, mi ));
 	    printf("hk: %p\n", hk );
 	    if(hk) {
 		short_mask = hk->state;
@@ -539,15 +559,17 @@ static int GMenuDrawMenuLine(struct gmenu *m, GMenuItem *mi, int y,GWindow pixma
 	    int x = GMenuDrawMacIcons(m,fg,ybase,m->rightedge-width, short_mask);
 	    GDrawDrawBiText(pixmap,x,ybase,shortbuf,-1,NULL,fg);
 	}
-    } else if ( mi->shortcut!=0 ) {
-	shorttext(mi,shortbuf);
-
-	width = GDrawGetBiTextWidth(pixmap,shortbuf,-1,-1,NULL);
-	if ( r2l )
-	    GDrawDrawBiText(pixmap,m->bp,ybase,shortbuf,-1,NULL,fg);
-	else
-	    GDrawDrawBiText(pixmap,m->rightedge-width,ybase,shortbuf,-1,NULL,fg);
     }
+    
+    /* } else if ( mi->shortcut!=0 ) { */
+    /* 	shorttext(mi,shortbuf); */
+
+    /* 	width = GDrawGetBiTextWidth(pixmap,shortbuf,-1,-1,NULL); */
+    /* 	if ( r2l ) */
+    /* 	    GDrawDrawBiText(pixmap,m->bp,ybase,shortbuf,-1,NULL,fg); */
+    /* 	else */
+    /* 	    GDrawDrawBiText(pixmap,m->rightedge-width,ybase,shortbuf,-1,NULL,fg); */
+    /* } */
     GDrawPopClip(pixmap,&old);
 return( y + h );
 }
