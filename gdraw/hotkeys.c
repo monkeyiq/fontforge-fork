@@ -67,6 +67,7 @@ static void loadHotkeysFromFile( const char* filename, int isUserDefined )
 	fprintf(stderr,"Failed to open hotkey definition file: %s\n", filename );
 	return;
     }
+    fprintf(stderr,"loading hotkey definition file: %s\n", filename );
 
     while ( fgets(line,sizeof(line),f)!=NULL ) {
 	if ( *line=='#' )
@@ -78,13 +79,13 @@ static void loadHotkeysFromFile( const char* filename, int isUserDefined )
 	char* keydefinition = pt+1;
 	chomp( keydefinition );
 	keydefinition = trimspaces( keydefinition );
-	printf("2.accel:%s key__%s__\n", line, keydefinition );
+//	printf("2.accel:%s key__%s__\n", line, keydefinition );
 
 	Hotkey* hk = gcalloc(1,sizeof(Hotkey));
 	strncpy( hk->action, line, HOTKEY_ACTION_MAX_SIZE );
 	HotkeyParse( hk, keydefinition );
 	hk->isUserDefined = isUserDefined;
-	printf("3. state:%d keysym:%d\n", hk->state, hk->keysym );
+//	printf("3. state:%d keysym:%d\n", hk->state, hk->keysym );
 	dlist_pushfront( &hotkeys, hk );
     }
     fclose(f);
@@ -92,13 +93,29 @@ static void loadHotkeysFromFile( const char* filename, int isUserDefined )
 
 void hotkeysLoad()
 {
+    char* p = 0;
+    
     // FIXME: find out how to convert en_AU.UTF-8 that setlocale()
     //   gives to its fallback of en_GB
     char localefn[PATH_MAX+1];
-    snprintf(localefn,PATH_MAX,"%s/hotkeys/%s",
-	     SHAREDIR,setlocale(LC_MESSAGES, 0));
+    char* currentlocale = copy(setlocale(LC_MESSAGES, 0));
+    snprintf(localefn,PATH_MAX,"%s/hotkeys/%s", SHAREDIR, currentlocale);
     loadHotkeysFromFile( localefn, false );
-
+    while( p = strrchr( currentlocale, '.' )) {
+	*p = '\0';
+	printf("LOOP currentlocale:%s\n", currentlocale );
+	snprintf(localefn,PATH_MAX,"%s/hotkeys/%s", SHAREDIR, currentlocale);
+	loadHotkeysFromFile( localefn, false );
+    }
+    while( p = strrchr( currentlocale, '_' )) {
+	*p = '\0';
+	printf("LOOP currentlocale:%s\n", currentlocale );
+	snprintf(localefn,PATH_MAX,"%s/hotkeys/%s", SHAREDIR, currentlocale);
+	loadHotkeysFromFile( localefn, false );
+    }
+    
+    free(currentlocale);
+    
     char* fn = getHotkeyFilename();
     if( !fn ) {
 	fprintf(stderr,"Can not work out where your hotkey definition file is!\n");
