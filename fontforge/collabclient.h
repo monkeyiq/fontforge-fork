@@ -36,6 +36,16 @@
 extern int pref_collab_sessionJoinTimeoutMS;
 extern int pref_collab_roundTripTimerMS;
 
+extern char lastChangedName[1024];
+extern int lastChangedPos;
+extern char lastChangedEncoding[1024];
+extern int lastChangedCodePoint;
+
+extern char* Collab_getLastChangedName( void );
+extern int Collab_getLastChangedPos( void ) ;
+extern int Collab_getLastChangedCodePoint( void );
+
+
 /**
  * Create a new collab client. You can start using the client in two
  * major ways: collabclient_sessionStart() will send your current SFD

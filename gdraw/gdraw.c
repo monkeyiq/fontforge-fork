@@ -950,6 +950,7 @@ GDrawAddReadFD( GDisplay *gdisp,
 		int fd, void* udata,
 		void (*callback)(int fd, void* udata ))
 {
+    printf("GDrawAddReadFD()\n");
     if ( !gdisp )
     {
 	gdisp=screen_display;
@@ -1054,6 +1055,15 @@ void MacServiceReadFDs()
     int ret = 0;
     
     GDisplay *gdisp = GDrawGetDisplayOfWindow(0);
+        if( !gdisp )
+    {
+	// collab code being called from python scripted fontforge.
+	///GDrawCreateDisplays( 0, "fontforge");
+	///gdisp=screen_display;
+    }
+
+        //printf("service fds... last:%d\n", gdisp->fd_callbacks_last );
+        
     int fd = 0;
     fd_set read, write, except;
     FD_ZERO(&read); FD_ZERO(&write); FD_ZERO(&except);
@@ -1076,7 +1086,11 @@ void MacServiceReadFDs()
     {
 	fd_callback_t* cb = &gdisp->fd_callbacks[ idx ];
 	if( FD_ISSET(cb->fd,&read))
+    {
+        printf("callback set!\n");
 	    cb->callback( cb->fd, cb->udata );
+    }
+    
     }
 }
 

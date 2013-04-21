@@ -62,6 +62,7 @@
 #include <wchar.h>
 #endif
 
+#define BUILD_COLLAB
 #include "gnetwork.h"
 #ifdef BUILD_COLLAB
 #include "collab/zmq_kvmsg.h"
@@ -15472,7 +15473,9 @@ static PyObject *PyFFFont_CollabSessionStart(PyFF_Font *self, PyObject *args)
     
 static PyObject *PyFFFont_CollabSessionJoin(PyFF_Font *self, PyObject *args)
 {
+    printf("PyFFFont_CollabSessionJoin(top)\n");
 #ifdef BUILD_COLLAB
+    printf("PyFFFont_CollabSessionJoin(2)\n");
 
     char* address = collabclient_makeAddressString(
 	"localhost", collabclient_getDefaultBasePort());
@@ -15487,7 +15490,7 @@ static PyObject *PyFFFont_CollabSessionJoin(PyFF_Font *self, PyObject *args)
     }
     FontViewBase *fv = self->fv;
 
-    printf("PyFFFont_CollabSessionJoin() address:%s fv:%p\n", address, self->fv );
+    fprintf(stderr,"PyFFFont_CollabSessionJoin() address:%s fv:%p\n", address, self->fv );
     void* cc = collabclient_newFromPackedAddress( address );
     printf("PyFFFont_CollabSessionJoin() address:%s cc1:%p\n", address, cc );
     fv->collabClient = cc;
@@ -15521,6 +15524,31 @@ static void InvokeCollabSessionSetUpdatedCallback(PyFF_Font *self)
 	result = PyObject_CallObject(CollabSessionSetUpdatedCallback, arglist);
 	Py_DECREF(arglist);
     }
+}
+
+
+static PyObject *PyFF_getLastChangedName(PyObject *UNUSED(self), PyObject *args) {
+    PyObject *ret;
+    //ret = Py_BuildValue("s", lastChangedNameCollab_getLastChangedName() );
+    ret = Py_BuildValue("s", lastChangedName );
+    return( ret );
+}
+static PyObject *PyFF_getLastChangedPos(PyObject *UNUSED(self), PyObject *args) {
+    PyObject *ret;
+    ret = Py_BuildValue("i", Collab_getLastChangedPos() );
+    return( ret );
+}
+static PyObject *PyFF_getLastChangedCodePoint(PyObject *UNUSED(self), PyObject *args) {
+    PyObject *ret;
+    ret = Py_BuildValue("i", Collab_getLastChangedCodePoint() );
+    return( ret );
+}
+static PyObject *PyFF_getLastSeq(PyFF_Font *self, PyObject *args)
+{
+    int64_t seq = collabclient_getCurrentSequenceNumber( self->fv->collabClient );
+    PyObject *ret;
+    ret = Py_BuildValue("i", seq );
+    return( ret );
 }
 
 
@@ -17350,6 +17378,12 @@ static PyMethodDef PyFF_Font_methods[] = {
     { "CollabSessionRunMainLoop", (PyCFunction) PyFFFont_CollabSessionRunMainLoop, METH_VARARGS, "Run the main loop, checking for and reacting to Collab messages for the given number of milliseconds (or 1 second by default)" },
     { "CollabSessionSetUpdatedCallback", (PyCFunction) PyFFFont_CollabSessionSetUpdatedCallback, METH_VARARGS, "Python function to call after a new collab update has been applied" },
 
+
+    { "CollabLastChangedName", (PyCFunction) PyFF_getLastChangedName, METH_VARARGS, "" },
+    { "CollabLastChangedPos", (PyCFunction) PyFF_getLastChangedPos, METH_VARARGS, "" },
+    { "CollabLastChangedCodePoint", (PyCFunction) PyFF_getLastChangedCodePoint, METH_VARARGS, "" },
+    { "CollabLastSeq", (PyCFunction) PyFF_getLastSeq, METH_VARARGS, "" },
+    
 
     PYMETHODDEF_EMPTY /* Sentinel */
 };

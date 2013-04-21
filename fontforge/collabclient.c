@@ -41,9 +41,9 @@ int pref_collab_sessionJoinTimeoutMS = 1000;
 int pref_collab_roundTripTimerMS = 2000;
 
 
-#ifndef _NO_LIBZMQ
+//#ifndef _NO_LIBZMQ
 #define BUILD_COLLAB
-#endif
+//#endif
 
 #ifdef BUILD_COLLAB
 #include "collab/zmq_kvmsg.h"
@@ -127,7 +127,27 @@ static zctx_t* obtainMainZMQContext()
     return ctx;
 }
 
+char lastChangedName[1024];
+int lastChangedPos;
+char lastChangedEncoding[1024];
+int lastChangedCodePoint;
 
+char* Collab_getLastChangedName( void )
+{
+    return lastChangedName;
+}
+
+int Collab_getLastChangedPos( void )
+{
+    return lastChangedPos;
+}
+
+int Collab_getLastChangedCodePoint( void )
+{
+    return lastChangedCodePoint;
+}
+
+    
 /**
  * Process the given kvmsg from the server. If create is set and we do
  * not have any charview for a changed glyph then we first create a
@@ -174,7 +194,13 @@ static void zeromq_subscriber_process_update( cloneclient_t* cc, kvmsg_t *kvmsg,
 	printf("pos:%s\n", pos );
 //	SplineChar *sc = sf->glyphs[ atoi(pos) ];
 	SplineChar* sc = SFGetOrMakeChar( sf, -1, name );
-	
+
+    strcpy( lastChangedName, name );
+    lastChangedPos = atoi(pos);
+    strcpy( lastChangedEncoding, "" );
+    lastChangedCodePoint = sc->unicodeenc;
+    printf("name:%s pos:%d codepoint:%d\n", name, lastChangedPos, lastChangedCodePoint );
+    
 	printf("sc:%p\n", sc );
 	if( !sc )
 	{
@@ -391,7 +417,7 @@ collabclient_remakeSockets( cloneclient_t *cc )
     int fd = 0;
     size_t fdsz = sizeof(fd);
     int rc = zmq_getsockopt( cc->subscriber, ZMQ_FD, &fd, &fdsz );
-    printf("rc:%d fd:%d\n", rc, fd );
+    printf("collabclient_remakeSockets() rc:%d fd:%d\n", rc, fd );
     GDrawAddReadFD( 0, fd, cc, zeromq_subscriber_fd_callback );
     
 }
