@@ -1,5 +1,8 @@
 #!/usr/bin/env fontforge
 #
+# The above may need to change if you've ./configure --prefix=/tmp/ff to eg
+#!/tmp/ff/bin/fontforge
+#
 # Join the session and output a TTF of the font as it is updated
 #   until a key is pressed.
 #
@@ -10,34 +13,51 @@ import os
 
 myipaddr = "127.0.0.1"
 
+# These are the values for Fedora 18:
+webServerRootDir = "/var/www/html/"
+webOutputDir = "ffc/"
+
+# These are the values for Ubuntu 13.04:
+# webServerRootDir = "/var/www/"
+# webOutputDir = "html/ffc/"
+
+webServerOutputDir = webServerRootDir + webOutputDir
+
 def keyPressed():
     return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])
 
 def OnCollabUpdate(f):
     seq = f.CollabLastSeq()
+    basename = "font-" + str(seq)
+    fontFileName = basename + ".ttf"
+    fontJsonFileName = basename + ".json"
+    fontFileOnDisk = webServerOutputDir + fontFileName
+    fontJsonOnDisk = webServerOutputDir + fontJsonFileName
+    fontFileURL = "http://" + myipaddr + "/" + webOutputDir + fontFileName
+
     fontforge.logWarning("Got an update!")
-    fontforge.logWarning("   something about the font... name: " + f.fullname )
+    fontforge.logWarning("   something about the font... name: " + str(f.fullname))
     fontforge.logWarning(" last seq: " + str(f.CollabLastSeq()))
-    fontforge.logWarning("      glyph:" + f.CollabLastChangedName())
+    fontforge.logWarning("      glyph:" + str(f.CollabLastChangedName()))
     fontforge.logWarning("      code point:" + str(f.CollabLastChangedCodePoint()))
-    basen = "/var/www/html/ffc/font-" + str(seq);
-    f.generate( basen + ".ttf")
-    js = json.dumps({"seq": f.CollabLastSeq(), 
-                     "glyph": f.CollabLastChangedName(), 
-                     "codepoint": f.CollabLastChangedCodePoint(),
-                     "earl": "http://" + myipaddr + "/ffc/font-" + str(seq) + '.ttf',
-                     "end": "game over"
+    f.generate(fontFileOnDisk)
+    js = json.dumps({
+                     "seq": str(f.CollabLastSeq()), 
+                     "glyph": str(f.CollabLastChangedName()), 
+                     "codepoint": str(f.CollabLastChangedCodePoint()),
+                     "earl": str(fontFileURL),
+                     "end": "game over" # 2013-04-23 DC: Ben, what is this? :)
                      }, 
                      sort_keys=True, indent=4, separators=(',', ': '))
     print js
-    fi = open(basen + '.json', 'w')
+    fi = open(fontJsonOnDisk, 'w')
     fi.write(js)
 
-f=fontforge.open("test.sfd")       
-fontforge.logWarning( "font name: " + f.fullname )
+f=fontforge.open("../test.sfd")       
+fontforge.logWarning( "Opened font name: " + f.fullname )
 f2 = f.CollabSessionJoin()
-fontforge.logWarning( "joined session" )
-fontforge.logWarning( "f2 name: " + f2.fullname )
+fontforge.logWarning( "Joined session" )
+fontforge.logWarning( "Collab session font name: " + f2.fullname )
 
 f2.CollabSessionSetUpdatedCallback( OnCollabUpdate )
 while True:
@@ -45,5 +65,6 @@ while True:
     if keyPressed(): 
         break;
 
-f2.generate("/tmp/out-final.ttf")
-fontforge.logWarning( "script is done." )
+finalOutput = "/tmp/out-final.ttf"
+f2.generate(finalOutput)
+fontforge.logWarning( "Left collab session, final file is at " + finalOutput )
