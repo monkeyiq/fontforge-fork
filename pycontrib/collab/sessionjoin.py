@@ -53,18 +53,16 @@ def OnCollabUpdate(f):
     fi = open(fontJsonOnDisk, 'w')
     fi.write(js)
 
-f=fontforge.font()       
-fontforge.logWarning( "Opened font name: " + f.fullname )
-f2 = f.CollabSessionJoin()
-fontforge.logWarning( "Joined session" )
-fontforge.logWarning( "Collab session font name: " + f2.fullname )
+newfont=fontforge.font()       
+f = newfont.CollabSessionJoin()
+fontforge.logWarning( "Joined session, font name: " + f.fullname )
 
-f2.CollabSessionSetUpdatedCallback( OnCollabUpdate )
+f.CollabSessionSetUpdatedCallback( OnCollabUpdate )
 while True:
-    f2.CollabSessionRunMainLoop()
+    f.CollabSessionRunMainLoop()
     if keyPressed(): 
         break;
 
 finalOutput = "/tmp/out-final.ttf"
-f2.generate(finalOutput)
+f.generate(finalOutput)
 fontforge.logWarning( "Left collab session, final file is at " + finalOutput )
