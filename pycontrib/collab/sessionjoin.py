@@ -53,7 +53,7 @@ def OnCollabUpdate(f):
     fi = open(fontJsonOnDisk, 'w')
     fi.write(js)
 
-f=fontforge.open("../test.sfd")       
+f=fontforge.font()       
 fontforge.logWarning( "Opened font name: " + f.fullname )
 f2 = f.CollabSessionJoin()
 fontforge.logWarning( "Joined session" )
