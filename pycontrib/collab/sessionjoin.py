@@ -46,7 +46,7 @@ def OnCollabUpdate(f):
                      "glyph": str(f.CollabLastChangedName()), 
                      "codepoint": str(f.CollabLastChangedCodePoint()),
                      "earl": str(fontFileURL),
-                     "end": "game over" # 2013-04-23 DC: Ben, what is this? :)
+                     "end": "null" # this is simply so we dont have to manage keeping the last item with no terminating ,
                      }, 
                      sort_keys=True, indent=4, separators=(',', ': '))
     print js
