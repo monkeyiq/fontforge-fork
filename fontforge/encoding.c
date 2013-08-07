@@ -148,6 +148,10 @@ return( goodname );
     } else {
 	testnames = namesbe;
     }
+    testnames = namesle;
+#if defined(__MINGW32__)
+    testnames = namesle;
+#endif
     for ( i=0; testnames[i]!=NULL; ++i ) {
 	test = iconv_open(testnames[i],"ISO-8859-1");
 	if ( test!=(iconv_t) -1 && test!=NULL ) {
@@ -179,6 +183,7 @@ return( goodname );
     } else
 	iconv_close(test);
 
+    printf("goodname:%s\n", goodname );
     /* I really should check for ISO-2022-JP, KR, CN, and all the other encodings */
     /*  I might find in a ttf 'name' table. But those tables take too long to build */
 return( goodname );
@@ -309,6 +314,7 @@ return( &unicodefull );
 
     memset(&temp,0,sizeof(temp));
     temp.builtin = true;
+    printf("tounicode is %s to %s\n",FindUnicharName(),iconv_name);
     temp.tounicode = iconv_open(FindUnicharName(),iconv_name);
     if ( temp.tounicode==(iconv_t) -1 || temp.tounicode==NULL )
 return( NULL );			/* Iconv doesn't recognize this name */
@@ -2470,6 +2476,9 @@ return( -1 );
 	if ( tpt-(char *) to == sizeof(unichar_t) )
 	{
 	    printf("UniFromEnc(ret) %ld\n",to[0] );
+	    /* if( enc == 65 ) */
+	    /* 	return 0x410000; */
+	    /* return -1; */
 	    return( to[0] );
 	}
     } else if ( encname->tounicode_func!=NULL ) {
