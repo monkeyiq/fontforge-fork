@@ -327,17 +327,25 @@ return( NULL );
 	fpt = from;
 	upt = ucs;
 	tolen = sizeof(ucs);
-	if ( iconv( temp.tounicode , &fpt, &fromlen, &upt, &tolen )!= (size_t) (-1)) {
+	if ( iconv( temp.tounicode , &fpt, &fromlen, &upt, &tolen )!= (size_t) (-1))
+	{
+	    printf("called iconv(i:%d) A \n",i);
 	    good[i] = true;
 	    any = true;
-	} else
+	}
+	else
+	{
+	    printf("called iconv(i:%d) B \n",i);
 	    all = false;
+	}
     }
     if ( any )
 	temp.has_1byte = true;
     if ( all )
 	temp.only_1byte = true;
 
+    printf("done with iconv() any:%d all:%d\n",any,all);
+    
     if ( !all ) {
 	if ( strstr(iconv_name,"2022")==NULL ) {
 	    for ( i=temp.has_1byte; i<256; ++i ) if ( !good[i] ) {
@@ -386,6 +394,7 @@ return( NULL );
 	    }
 	}
     }
+    printf("done with iconv(2) 1byte:%d 2byte:%d make_it:%d\n",temp.has_1byte,temp.has_2byte,make_it );
     if ( !temp.has_1byte && !temp.has_2byte )
 return( NULL );
     if ( !make_it )
@@ -534,7 +543,8 @@ static Encoding *ParseConsortiumEncodingFile(FILE *file) {
     int32 encs[0x10000];
     int enc, unienc, max;
     Encoding *item;
-
+    printf("ParseConsortiumEncodingFile()\n");
+    
     memset(encs, 0, sizeof(encs));
     max = -1;
 
@@ -918,7 +928,7 @@ return( ret );
 
 static struct cidmap *MakeDummyMap(char *registry,char *ordering,int supplement) {
     struct cidmap *ret = galloc(sizeof(struct cidmap));
-
+    printf("MakeDummyMap()\n");
     ret->registry = copy(registry);
     ret->ordering = copy(ordering);
     ret->supplement = ret->maxsupple = supplement;
@@ -937,7 +947,8 @@ struct cidmap *LoadMapFromFile(char *file,char *registry,char *ordering,
     FILE *f;
     int cid1, cid2, uni, cnt, i, ch;
     char name[100];
-
+    printf("LoadMapFromFile\n");
+    
     while ( pt>file && isdigit(pt[-1]))
 	--pt;
     ret->supplement = ret->maxsupple = strtol(pt,NULL,10);
@@ -2407,7 +2418,12 @@ int32 UniFromEnc(int enc, Encoding *encname) {
     ICONV_CONST char *fpt;
     char *tpt;
     size_t fromlen, tolen;
-
+    printf("UniFromEnc(top) enc:%d name:%s\n", enc, encname->enc_name);
+    printf("UniFromEnc() custom:%d orig:%d char_cnt:%d \n", encname->is_custom, encname->is_original, encname->char_cnt );
+    printf("UniFromEnc() bmp:%d full:%d \n", encname->is_unicodebmp, encname->is_unicodefull );
+    printf("UniFromEnc() encname->unicode:%p\n", encname->unicode );
+    printf("UniFromEnc() tounicode:%p\n", encname->tounicode );
+    
     if ( encname->is_custom || encname->is_original )
 return( -1 );
     if ( enc>=encname->char_cnt )
@@ -2417,6 +2433,7 @@ return( enc );
     if ( encname->unicode!=NULL )
 return( encname->unicode[enc] );
     else if ( encname->tounicode ) {
+	printf("UniFromEnc(body1)\n");
 	/* To my surprise, on RH9, doing a reset on conversion of CP1258->UCS2 */
 	/* causes subsequent calls to return garbage */
 	if ( encname->iso_2022_escape_len ) {
@@ -2425,17 +2442,21 @@ return( encname->unicode[enc] );
 	}
 	fpt = from; tpt = (char *) to; tolen = sizeof(to);
 	if ( encname->has_1byte && enc<256 ) {
+	    printf("UniFromEnc(bodyB) 1byte\n");
 	    *(char *) fpt = enc;
 	    fromlen = 1;
 	} else if ( encname->has_2byte ) {
+	    printf("UniFromEnc(bodyB) 2byte\n");
 	    if ( encname->iso_2022_escape_len )
 		strncpy(from,encname->iso_2022_escape,encname->iso_2022_escape_len );
 	    fromlen = encname->iso_2022_escape_len;
 	    from[fromlen++] = enc>>8;
 	    from[fromlen++] = enc&0xff;
 	}
+	printf("UniFromEnc(body5)\n");
 	if ( iconv(encname->tounicode,&fpt,&fromlen,&tpt,&tolen)==(size_t) -1 )
 return( -1 );
+	printf("UniFromEnc(body6)\n");
 	if ( tpt-(char *) to == 0 ) {
 	    /* This strange call appears to be what we need to make CP1258->UCS2 */
 	    /*  work.  It's supposed to reset the state and give us the shift */
@@ -2444,8 +2465,13 @@ return( -1 );
 	    if ( iconv(encname->tounicode,NULL,&fromlen,&tpt,&tolen)==(size_t) -1 )
 return( -1 );
 	}
+	printf("UniFromEnc(end part) tpt:%p to:%p diff:%d expected:%d\n",
+	       tpt, to, (tpt-(char *) to), sizeof(unichar_t) );
 	if ( tpt-(char *) to == sizeof(unichar_t) )
-return( to[0] );
+	{
+	    printf("UniFromEnc(ret) %ld\n",to[0] );
+	    return( to[0] );
+	}
     } else if ( encname->tounicode_func!=NULL ) {
 return( (encname->tounicode_func)(enc) );
     }
