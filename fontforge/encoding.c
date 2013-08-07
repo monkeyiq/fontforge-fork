@@ -148,9 +148,8 @@ return( goodname );
     } else {
 	testnames = namesbe;
     }
-    testnames = namesle;
 #if defined(__MINGW32__)
-    testnames = namesbe;
+    testnames = namesle;
 #endif
     for ( i=0; testnames[i]!=NULL; ++i ) {
 	test = iconv_open(testnames[i],"ISO-8859-1");
@@ -2475,7 +2474,19 @@ return( -1 );
 	       tpt, to, (tpt-(char *) to), sizeof(unichar_t) );
 	if ( tpt-(char *) to == sizeof(unichar_t) )
 	{
-	    printf("UniFromEnc(ret) %ld\n",to[0] );
+	    printf("UniFromEnc(original ret) %ld\n",to[0] );
+#if defined(__MINGW32__)
+	    {
+		unichar_t t = to[0];
+		printf("UniFromEnc(ret1) %ld\n",t );
+		unichar_t low16  = t & 0xFFFF;
+		unichar_t high16 = t >> 16;
+		t = (low16<<16) | high16;
+		printf("UniFromEnc(ret2) %ld\n",t );
+		to[0] = t;
+	    }
+	    printf("UniFromEnc(final ret) %ld\n",to[0] );
+#endif	    
 	    /* if( enc == 65 ) */
 	    /* 	return 0x410000; */
 	    /* return -1; */
