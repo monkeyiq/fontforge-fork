@@ -150,7 +150,7 @@ return( goodname );
     }
     testnames = namesle;
 #if defined(__MINGW32__)
-    testnames = namesle;
+    testnames = namesbe;
 #endif
     for ( i=0; testnames[i]!=NULL; ++i ) {
 	test = iconv_open(testnames[i],"ISO-8859-1");
