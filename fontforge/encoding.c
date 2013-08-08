@@ -2448,7 +2448,7 @@ return( -1 );
 	{
 #if defined(__MINGW32__)
 	    {
-		printf("UniFromEnc(original ret) %ld\n",to[0] );
+		printf("UniFromEnc(original ret) enc:%d initial result:%ld\n", enc, to[0] );
 		// For whatever reason the mingw32 build seems to always produce
 		// a result in byte swapped order.
 		unichar_t t = to[0];
@@ -2456,7 +2456,7 @@ return( -1 );
 		unichar_t low16  = t & 0xFFFF;
 		unichar_t high16 = t >> 16;
 		t = (low16<<16) | high16;
-		printf("UniFromEnc(ret2) %ld\n",t );
+		printf("UniFromEnc(ret2) enc:%d final result:%ld\n", enc, t );
 		to[0] = t;
 	    }
 	    printf("UniFromEnc(final ret) %ld\n",to[0] );
