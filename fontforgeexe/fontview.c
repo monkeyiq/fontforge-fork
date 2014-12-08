@@ -7070,11 +7070,11 @@ return( GGadgetDispatchEvent(fv->vsb,event));
       case et_timer:
 	FVTimer(fv,event);
       break;
-      /* case et_focus: */
-      /* 	  printf("fv.et_focus\n"); */
-      /* 	if ( event->u.focus.gained_focus ) */
-      /* 	    GDrawSetGIC(gw,fv->gic,0,20); */
-      /* break; */
+      case et_focus:
+      	  printf("fv.et_focus\n");
+	  if ( event->u.focus.gained_focus )
+	      GDrawSetGIC(gw,fv->gic,0,20);
+      break;
     }
 return( true );
 }
