@@ -6126,12 +6126,14 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 	styles = 0;
 	if ( index < fv->b.map->enccount && index!=-1 ) {
 	    unichar_t buf[60]; char cbuf[8];
-	    char utf8_buf[8];
+	    char utf8_buf[17];
 	    int use_utf8 = false;
 	    Color fg;
 	    extern const int amspua[];
 	    int uni;
 	    struct cidmap *cidmap = NULL;
+
+	    memset(utf8_buf,0,16);
 	    sc = (gid=fv->b.map->map[index])!=-1 ? fv->b.sf->glyphs[gid]: NULL;
 	    if ( fv->b.cidmaster!=NULL )
 		cidmap = FindCidMap(fv->b.cidmaster->cidregistry,fv->b.cidmaster->ordering,fv->b.cidmaster->supplement,fv->b.cidmaster);
@@ -6191,9 +6193,13 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 		    use_utf8 = true;
 			*pt = '\0'; // We terminate the string in case the appendage (?) fails.
 		    pt = utf8_idpb(pt,uni,0);
-		    if (pt) *pt = '\0'; else fprintf(stderr, "Invalid Unicode alert.\n");
+		    if (pt) {
+			*pt = '\0';
+		    } else {
+			memset(utf8_buf,0,16);
+			fprintf(stderr, "Invalid Unicode alert.\n");
+		    }
 		} else {
-#if 0
 		    char *pt = strchr(sc->name,'.');
 		    buf[0] = '?';
 		    fg = 0xff0000;
@@ -6241,7 +6247,6 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 			    strncmp(sc->name,"vertuni",7)==0 ) {
 			styles = _uni_vertical;
 		    }
-#endif
 		}
 	      break;
 	    }
