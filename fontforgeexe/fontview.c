@@ -6149,7 +6149,6 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 	    if ( fv->b.sf->uni_interp==ui_ams && uni>=0xe000 && uni<=0xf8ff &&
 		    amspua[uni-0xe000]!=0 )
 		uni = amspua[uni-0xe000];
-#if 0
 	    switch ( fv->glyphlabel ) {
 	      case gl_name:
 		uc_strncpy(buf,sc->name,sizeof(buf)/sizeof(buf[0]));
@@ -6170,6 +6169,7 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 		uc_strcpy(buf,cbuf);
 	      break;
 	      case gl_glyph:
+#if 0
 		if ( uni==0xad )
 		    buf[0] = '-';
 		else if ( fv->b.sf->uni_interp==ui_adobe && uni>=0xf600 && uni<=0xf7ff &&
@@ -6242,9 +6242,9 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 			styles = _uni_vertical;
 		    }
 		}
+#endif
 	      break;
 	    }
-#endif
 	    r.x = j*fv->cbw+1; r.width = fv->cbw-1;
 	    r.y = i*fv->cbh+1; r.height = fv->lab_height-1;
 	    bg = view_bgcol;
