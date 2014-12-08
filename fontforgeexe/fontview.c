@@ -6169,7 +6169,6 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 		uc_strcpy(buf,cbuf);
 	      break;
 	      case gl_glyph:
-#if 0
 		if ( uni==0xad )
 		    buf[0] = '-';
 		else if ( fv->b.sf->uni_interp==ui_adobe && uni>=0xf600 && uni<=0xf7ff &&
@@ -6194,6 +6193,7 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 		    pt = utf8_idpb(pt,uni,0);
 		    if (pt) *pt = '\0'; else fprintf(stderr, "Invalid Unicode alert.\n");
 		} else {
+#if 0
 		    char *pt = strchr(sc->name,'.');
 		    buf[0] = '?';
 		    fg = 0xff0000;
@@ -6241,8 +6241,8 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 			    strncmp(sc->name,"vertuni",7)==0 ) {
 			styles = _uni_vertical;
 		    }
-		}
 #endif
+		}
 	      break;
 	    }
 	    r.x = j*fv->cbw+1; r.width = fv->cbw-1;
