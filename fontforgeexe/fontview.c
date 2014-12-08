@@ -6124,7 +6124,6 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 	int index = (i+fv->rowoff)*fv->colcnt+j;
 	SplineChar *sc;
 	styles = 0;
-#if 0
 	if ( index < fv->b.map->enccount && index!=-1 ) {
 	    unichar_t buf[60]; char cbuf[8];
 	    char utf8_buf[8];
@@ -6150,6 +6149,7 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 	    if ( fv->b.sf->uni_interp==ui_ams && uni>=0xe000 && uni<=0xf8ff &&
 		    amspua[uni-0xe000]!=0 )
 		uni = amspua[uni-0xe000];
+#if 0
 	    switch ( fv->glyphlabel ) {
 	      case gl_name:
 		uc_strncpy(buf,sc->name,sizeof(buf)/sizeof(buf[0]));
@@ -6244,6 +6244,7 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 		}
 	      break;
 	    }
+#endif
 	    r.x = j*fv->cbw+1; r.width = fv->cbw-1;
 	    r.y = i*fv->cbh+1; r.height = fv->lab_height-1;
 	    bg = view_bgcol;
@@ -6333,7 +6334,6 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 		laststyles = styles;
 	    }
 	}
-#endif
 	FVDrawGlyph(pixmap,fv,index,false);
     }
     if ( fv->showhmetrics&fvm_baseline ) {
