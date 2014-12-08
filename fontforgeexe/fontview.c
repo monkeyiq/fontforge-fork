@@ -6119,6 +6119,7 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
     }
     for ( i=0; i<=fv->colcnt; ++i )
 	GDrawDrawLine(pixmap,i*fv->cbw,0,i*fv->cbw,fv->height,def_fg);
+#if 0    
     for ( i=event->u.expose.rect.y/fv->cbh; i<=fv->rowcnt &&
 	    (event->u.expose.rect.y+event->u.expose.rect.height+fv->cbh-1)/fv->cbh; ++i ) for ( j=0; j<fv->colcnt; ++j ) {
 	int index = (i+fv->rowoff)*fv->colcnt+j;
@@ -6335,6 +6336,7 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 	}
 	FVDrawGlyph(pixmap,fv,index,false);
     }
+#endif    
     if ( fv->showhmetrics&fvm_baseline ) {
 	for ( i=0; i<=fv->rowcnt; ++i )
 	    GDrawDrawLine(pixmap,0,i*fv->cbh+fv->lab_height+fv->magnify*fv->show->ascent+1,fv->width,i*fv->cbh+fv->lab_height+fv->magnify*fv->show->ascent+1,METRICS_BASELINE);
@@ -7050,10 +7052,10 @@ return( GGadgetDispatchEvent(fv->vsb,event));
 
     GGadgetPopupExternalEvent(event);
     switch ( event->type ) {
-      /* case et_expose: */
-      /* 	GDrawSetLineWidth(gw,0); */
-      /* 	FVExpose(fv,gw,event); */
-      /* break; */
+      case et_expose:
+      	GDrawSetLineWidth(gw,0);
+      	FVExpose(fv,gw,event);
+      break;
       case et_char:
 	if ( fv->b.container!=NULL )
 	    (fv->b.container->funcs->charEvent)(fv->b.container,event);
