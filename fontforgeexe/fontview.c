@@ -6119,12 +6119,12 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
     }
     for ( i=0; i<=fv->colcnt; ++i )
 	GDrawDrawLine(pixmap,i*fv->cbw,0,i*fv->cbw,fv->height,def_fg);
-#if 0    
     for ( i=event->u.expose.rect.y/fv->cbh; i<=fv->rowcnt &&
 	    (event->u.expose.rect.y+event->u.expose.rect.height+fv->cbh-1)/fv->cbh; ++i ) for ( j=0; j<fv->colcnt; ++j ) {
 	int index = (i+fv->rowoff)*fv->colcnt+j;
 	SplineChar *sc;
 	styles = 0;
+#if 0
 	if ( index < fv->b.map->enccount && index!=-1 ) {
 	    unichar_t buf[60]; char cbuf[8];
 	    char utf8_buf[8];
@@ -6134,7 +6134,6 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 	    int uni;
 	    struct cidmap *cidmap = NULL;
 	    sc = (gid=fv->b.map->map[index])!=-1 ? fv->b.sf->glyphs[gid]: NULL;
-
 	    if ( fv->b.cidmaster!=NULL )
 		cidmap = FindCidMap(fv->b.cidmaster->cidregistry,fv->b.cidmaster->ordering,fv->b.cidmaster->supplement,fv->b.cidmaster);
 
@@ -6334,9 +6333,9 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 		laststyles = styles;
 	    }
 	}
+#endif
 	FVDrawGlyph(pixmap,fv,index,false);
     }
-#endif    
     if ( fv->showhmetrics&fvm_baseline ) {
 	for ( i=0; i<=fv->rowcnt; ++i )
 	    GDrawDrawLine(pixmap,0,i*fv->cbh+fv->lab_height+fv->magnify*fv->show->ascent+1,fv->width,i*fv->cbh+fv->lab_height+fv->magnify*fv->show->ascent+1,METRICS_BASELINE);
