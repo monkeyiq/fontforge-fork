@@ -6156,7 +6156,7 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 #endif
 	      break;
 	      case gl_unicode:
-#if 1
+#if 0
 		if ( sc->unicodeenc!=-1 ) {
 		    sprintf(cbuf,"%04x",sc->unicodeenc);
 		    uc_strcpy(buf,cbuf);
@@ -6165,7 +6165,7 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 	      break;
 #endif 
 	      case gl_encoding:
-#if 0
+#if 1
 		if ( fv->b.map->enc->only_1byte ||
 			(fv->b.map->enc->has_1byte && index<256))
 		    sprintf(cbuf,"%02x",index);
