@@ -6149,27 +6149,31 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 	    if ( fv->b.sf->uni_interp==ui_ams && uni>=0xe000 && uni<=0xf8ff &&
 		    amspua[uni-0xe000]!=0 )
 		uni = amspua[uni-0xe000];
-#if 0
 	    switch ( fv->glyphlabel ) {
 	      case gl_name:
 		uc_strncpy(buf,sc->name,sizeof(buf)/sizeof(buf[0]));
 	      break;
 	      case gl_unicode:
+#if 0
 		if ( sc->unicodeenc!=-1 ) {
 		    sprintf(cbuf,"%04x",sc->unicodeenc);
 		    uc_strcpy(buf,cbuf);
 		} else
 		    uc_strcpy(buf,"?");
 	      break;
+#endif 
 	      case gl_encoding:
+#if 0
 		if ( fv->b.map->enc->only_1byte ||
 			(fv->b.map->enc->has_1byte && index<256))
 		    sprintf(cbuf,"%02x",index);
 		else
 		    sprintf(cbuf,"%04x",index);
 		uc_strcpy(buf,cbuf);
+#endif 
 	      break;
 	      case gl_glyph:
+#if 0
 		if ( uni==0xad )
 		    buf[0] = '-';
 		else if ( fv->b.sf->uni_interp==ui_adobe && uni>=0xf600 && uni<=0xf7ff &&
@@ -6242,9 +6246,9 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 			styles = _uni_vertical;
 		    }
 		}
+#endif
 	      break;
 	    }
-#endif
 	    r.x = j*fv->cbw+1; r.width = fv->cbw-1;
 	    r.y = i*fv->cbh+1; r.height = fv->lab_height-1;
 	    bg = view_bgcol;
