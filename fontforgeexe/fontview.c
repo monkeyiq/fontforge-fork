@@ -6125,8 +6125,8 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 	SplineChar *sc;
 	styles = 0;
 	if ( index < fv->b.map->enccount && index!=-1 ) {
-	    unichar_t buf[60]; char cbuf[8];
-	    char utf8_buf[8];
+	    unichar_t buf[60]; char cbuf[16];
+	    char utf8_buf[16];
 	    int use_utf8 = false;
 	    Color fg;
 	    extern const int amspua[];
@@ -6151,12 +6151,12 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 		uni = amspua[uni-0xe000];
 	    switch ( fv->glyphlabel ) {
 	      case gl_name:
-#if 0 
-		uc_strncpy(buf,sc->name,sizeof(buf)/sizeof(buf[0]));
+#if 1
+		  uc_strncpy(buf,sc->name,60);
 #endif
 	      break;
 	      case gl_unicode:
-#if 0
+#if 1
 		if ( sc->unicodeenc!=-1 ) {
 		    sprintf(cbuf,"%04x",sc->unicodeenc);
 		    uc_strcpy(buf,cbuf);
