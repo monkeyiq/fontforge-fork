@@ -6151,10 +6151,12 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 		uni = amspua[uni-0xe000];
 	    switch ( fv->glyphlabel ) {
 	      case gl_name:
+#if 0 
 		uc_strncpy(buf,sc->name,sizeof(buf)/sizeof(buf[0]));
+#endif
 	      break;
 	      case gl_unicode:
-#if 0
+#if 1
 		if ( sc->unicodeenc!=-1 ) {
 		    sprintf(cbuf,"%04x",sc->unicodeenc);
 		    uc_strcpy(buf,cbuf);
