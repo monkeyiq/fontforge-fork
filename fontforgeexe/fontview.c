@@ -6164,6 +6164,7 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 		  printf("have dest.sz: %d\n", sizeof(buf)/sizeof(buf[0]));
 	    
 		  uc_strncpy(buf,sc->name,sizeof(buf)/sizeof(buf[0]));
+		  printf("after strncpy buf.len: %d\n", u_strlen(buf));
 		  printf("after strncpy for sc: %p\n", sc );
 	      break;
 	      case gl_unicode:
