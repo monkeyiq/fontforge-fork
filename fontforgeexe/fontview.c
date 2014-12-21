@@ -6125,7 +6125,7 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 	SplineChar *sc;
 	styles = 0;
 	if ( index < fv->b.map->enccount && index!=-1 ) {
-	    unichar_t buf[60]; char cbuf[8];
+	    unichar_t buf[80]; char cbuf[8];
 	    char utf8_buf[8];
 	    int use_utf8 = false;
 	    Color fg;
@@ -6153,6 +6153,8 @@ static void FVExpose(FontView *fv,GWindow pixmap, GEvent *event) {
 	      case gl_name:
 		  printf("have1 sc: %p\n", sc );
 		  uc_strncpy( buf, "", 60 );
+		  memset(buf,0,61);
+		  
 		  printf("have2 sc: %p\n", sc );
 		  uc_strncpy( buf, "testing", 60 );
 		  printf("have3 sc: %p\n", sc );
