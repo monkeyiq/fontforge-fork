@@ -29,6 +29,8 @@
 
 #include "ffglib.h"
 #include "splinefont.h"
+#include "classtype.h"
+#include "gimage.h"
 
 #define free_with_debug(x) { fprintf(stderr,"%p FREE()\n",x); free(x); }
 
@@ -143,7 +145,192 @@ struct cvcontainer_funcs {
     SplineFont *(*sf_of_container)(struct cvcontainer *cvc);
 };
 
+typedef struct commonview CommonView;
+typedef struct sharedmenu_funcs 
+{
+    // sharedmenu_file
+    void (*dialogLoadWordList)( CommonView* self );
+    
+    // sharedmenu_select
+    void (*selectAll)( CommonView* self );
+    void (*invertSelection)( CommonView* self );
+    void (*deselectAll)( CommonView* self );
+    void (*selectByName)( CommonView* self, int mergeType );
+    void (*selectByScript)( CommonView* self, int mergeType );
+    void (*selectWorthOutputting)( CommonView* self, int mergeType );
+    void (*glyphsRefs)( CommonView* self, int mergeType );
+    void (*glyphsSplines)( CommonView* self, int mergeType );
+    void (*glyphsBoth)( CommonView* self, int mergeType );
+    void (*glyphsWhite)( CommonView* self, int mergeType );
+    void (*selectChanged)( CommonView* self, int mergeType );
+    void (*selectHintingNeeded)( CommonView* self, int mergeType );
+    void (*selectAutohintable)( CommonView* self, int mergeType );
+    void (*selectByPST)( CommonView* self );
+    void (*selectbyColor)( CommonView* self, int mergeType, Color col );
+    
+    //  sharedmenu_edit
+    void (*undo)( CommonView* self );
+    void (*redo)( CommonView* self );
+    void (*cut)( CommonView* self );
+    void (*copy)( CommonView* self );
+    void (*paste)( CommonView* self );
+    void (*delete)( CommonView* self );
+    void (*clear)( CommonView* self );
+    void (*undoFontLevel)( CommonView* self );
+    void (*removeUndoes)( CommonView* self );
+
+    // sharedmenu_edit_copylist
+    void (*copyRef)( CommonView* self );
+    void (*copyLookupData)( CommonView* self );
+    void (*copyWidth)( CommonView* self, enum undotype undotype );
+    void (*copyFgBg)( CommonView* self );
+    void (*copyL2L)( CommonView* self );
+
+    // sharedmenu_edit_pastelist
+    void (*pasteInto)( CommonView* self );
+    void (*pasteAfter)( CommonView* self );
+
+    // sharedmenu_edit_clearlist
+    void (*clearBackground)( CommonView* self );
+    void (*join)( CommonView* self );
+    
+    // select cv
+    void (*selectFirstPoint)( CommonView* self );
+    void (*selectFirstPointNextContour)( CommonView* self );
+    void (*selectNextPoint)( CommonView* self );
+    void (*selectPrevPoint)( CommonView* self );
+    void (*selectNextControlPoint)( CommonView* self );
+    void (*selectPrevControlPoint)( CommonView* self );
+    void (*selectContours)( CommonView* self );
+    void (*selectPointAt)( CommonView* self );
+    void (*selectAllPoints)( CommonView* self );
+    void (*selectOpenContours)( CommonView* self );
+    void (*selectAnchors)( CommonView* self );
+    void (*selectWidth)( CommonView* self );
+    void (*selectVWidth)( CommonView* self );
+    void (*selectHM)( CommonView* self );
+
+    // sharedmenu_metrics
+    void (*setWidth)( CommonView* self, enum widthtype wtype );
+    void (*metricsCenter)( CommonView* self, int docenter );
+    void (*kernPairCloseUp)( CommonView* self );
+    void (*removeKern)( CommonView* self );
+    void (*removeVKern)( CommonView* self );
+
+    void (*scaleViewToFit)( CommonView* self );
+    void (*scaleViewOut)( CommonView* self );
+    void (*scaleViewIn)( CommonView* self );
+
+    void (*gotoChar)( CommonView* self );
+    void (*gotoCharNext)( CommonView* self );
+    void (*gotoCharPrev)( CommonView* self );
+    void (*gotoCharNextDefined)( CommonView* self );
+    void (*gotoCharPrevDefined)( CommonView* self );
+    void (*gotoCharFormer)( CommonView* self );
+
+    void (*wordlistNextLine)( CommonView* self );
+    void (*wordlistPrevLine)( CommonView* self );
+    
+    void (*numberPoints)( CommonView* self, int mid );
+
+
+    void (*toggleShowTabs)( CommonView* self );
+    void (*toggleShowRulers)( CommonView* self );
+    void (*toggleShowPaletteTools)( CommonView* self );
+    void (*toggleShowPaletteLayers)( CommonView* self );
+    void (*toggleShowPaletteDocked)( CommonView* self );
+
+    // sharedmenu_path
+    void (*dialogEmbolden)( CommonView* self );
+    void (*dialogItalic)( CommonView* self );
+    void (*dialogOblique)( CommonView* self );
+    void (*dialogCondenseExtend)( CommonView* self );
+    void (*dialogXHeight)( CommonView* self );
+    void (*dialogStemsCounters)( CommonView* self );
+    void (*dialogInline)( CommonView* self );
+    void (*dialogOutline)( CommonView* self );
+    void (*dialogShadow)( CommonView* self );
+    void (*dialogWireframe)( CommonView* self );
+    
+    void (*dialogTransform)( CommonView* self );
+    void (*dialogPointOfViewProjection)( CommonView* self );
+    void (*dialogNonLinearTransform)( CommonView* self );
+
+    void (*overlapRemove)( CommonView* self );
+    void (*overlapIntersect)( CommonView* self );
+    void (*overlapExclude)( CommonView* self );
+    void (*overlapFindIntersections)( CommonView* self );
+    
+    void (*simplify)( CommonView* self );
+    void (*simplifyMoreDialog)( CommonView* self );
+    void (*simplifyCleanup)( CommonView* self );
+    void (*simplifyCanonicalStartPoint)( CommonView* self );
+    void (*simplifyCanonicalContours)( CommonView* self );
+    
+    void (*dialogExpandStroke)( CommonView* self );
+    void (*dialogCompareLayers)( CommonView* self );
+    void (*extremaAdd)( CommonView* self );
+
+    // glyph menu
+    void (*dialogCharInfo)( CommonView* self );
+    void (*dialogKernPairs)( CommonView* self );
+    void (*dialogLigatures)( CommonView* self );
+    void (*accentBuild)( CommonView* self );
+    void (*compositeBuild)( CommonView* self );
+    void (*duplicateGlyphs)( CommonView* self );
+    
+
+    // edit/revert menu
+    void (*revertToFile)( CommonView* self );
+    void (*revertToBackup)( CommonView* self );
+    void (*revertGlyphs)( CommonView* self );
+
+    // references menu
+    void (*referenceShowDependentRefs)( CommonView* self );
+    void (*referenceUnlink)( CommonView* self );
+
+    // hint menu
+    void (*hintDoAutoHint)( CommonView* self );
+    void (*hintAutoSubs)( CommonView* self );
+    void (*hintAutoCounter)( CommonView* self );
+    void (*hintDontAutoHint)( CommonView* self );
+    void (*hintAutoInstr)( CommonView* self );
+    void (*hintEditInstructionsDialog)( CommonView* self );
+    void (*hintEditTable_fpgm)( CommonView* self );
+    void (*hintEditTable_prep)( CommonView* self );
+    void (*hintEditTable_maxp)( CommonView* self );
+    void (*hintEditTable_cvt)( CommonView* self );
+    void (*hintRemoveInstructionTables)( CommonView* self );
+    void (*hintSuggestDeltasDialog)( CommonView* self );
+    void (*hintClear)( CommonView* self );
+    void (*hintClearInstructions)( CommonView* self );
+    void (*histogramHStemDialog)( CommonView* self );
+    void (*histogramVStemDialog)( CommonView* self );
+    void (*histogramBlueValuesDialog)( CommonView* self );
+
+    void (*openWindowGlyph)( CommonView* self );
+    void (*openWindowBitmap)( CommonView* self );
+    void (*openWindowMetrics)( CommonView* self );
+
+    
+    // utility to unify some methods
+    int (*getActiveLayer)( CommonView* self );
+
+    void (*selectionClear)( CommonView* self );
+    void (*selectionAddChar)( CommonView* self, struct splinechar *sc );
+    
+    
+} SharedMenuFuncs;
+
+typedef struct commonview {
+    ClassType m_classType;
+    SharedMenuFuncs m_sharedmenu_funcs;    
+} CommonView;
+
+
+
 typedef struct charviewbase {
+    CommonView m_commonView;
     struct charviewbase *next;
     struct fontviewbase *fv;
     SplineChar *sc;
@@ -178,6 +365,7 @@ enum collabState_t {
 };       
 
 typedef struct fontviewbase {
+    CommonView m_commonView;
     struct fontviewbase *next;		/* Next on list of open fontviews */
     struct fontviewbase *nextsame;	/* Next fv looking at this font */
     EncMap *map;			/* Current encoding info */

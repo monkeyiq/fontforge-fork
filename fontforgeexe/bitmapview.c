@@ -35,6 +35,7 @@
 #include <gresedit.h>
 
 #include "gutils/unicodelibinfo.h"
+#include "sharedmenu.h"
 
 int bv_width = 270, bv_height=250;
 
@@ -1571,17 +1572,17 @@ static void BVMenuSaveAs(GWindow gw,struct gmenuitem *mi,GEvent *g) {
 
 static void BVMenuGenerate(GWindow gw,struct gmenuitem *mi,GEvent *g) {
     BitmapView *bv = (BitmapView *) GDrawGetUserData(gw);
-    _FVMenuGenerate(bv->fv,false);
+    _FVMenuGenerate(bv->fv,false,-1);
 }
 
 static void BVMenuGenerateFamily(GWindow gw,struct gmenuitem *mi,GEvent *g) {
     BitmapView *bv = (BitmapView *) GDrawGetUserData(gw);
-    _FVMenuGenerate(bv->fv,gf_macfamily);
+    _FVMenuGenerate(bv->fv,gf_macfamily,-1);
 }
 
 static void BVMenuGenerateTTC(GWindow gw,struct gmenuitem *mi,GEvent *g) {
     BitmapView *bv = (BitmapView *) GDrawGetUserData(gw);
-    _FVMenuGenerate(bv->fv,gf_ttc);
+    _FVMenuGenerate(bv->fv,gf_ttc,-1);
 }
 
 static void BVMenuExport(GWindow gw,struct gmenuitem *mi,GEvent *g) {
@@ -2217,7 +2218,7 @@ static GMenuItem2 mblist[] = {
     { { (unichar_t *) N_("_View"), NULL, COLOR_DEFAULT, COLOR_DEFAULT, NULL, NULL, 0, 1, 0, 0, 0, 0, 1, 1, 0, 'V' }, NULL, vwlist, vwlistcheck, NULL, 0 },
     { { (unichar_t *) N_("_Metrics"), NULL, COLOR_DEFAULT, COLOR_DEFAULT, NULL, NULL, 0, 1, 0, 0, 0, 0, 1, 1, 0, 'M' }, NULL, mtlist, mtlistcheck, NULL, 0 },
     { { (unichar_t *) N_("_Window"), NULL, COLOR_DEFAULT, COLOR_DEFAULT, NULL, NULL, 0, 1, 0, 0, 0, 0, 1, 1, 0, 'W' }, NULL, wnmenu, BVWindowMenuBuild, NULL, 0 },
-    { { (unichar_t *) N_("_Help"), NULL, COLOR_DEFAULT, COLOR_DEFAULT, NULL, NULL, 0, 1, 0, 0, 0, 0, 1, 1, 0, 'H' }, NULL, helplist, NULL, NULL, 0 },
+    { { (unichar_t *) N_("_Help"), NULL, COLOR_DEFAULT, COLOR_DEFAULT, NULL, NULL, 0, 1, 0, 0, 0, 0, 1, 1, 0, 'H' }, NULL, sharedmenu_help, sharedmenu_help_check, NULL, 0 },
     GMENUITEM2_EMPTY
 };
 
@@ -2315,7 +2316,7 @@ BitmapView *BitmapViewCreate(BDFChar *bc, BDFFont *bdf, FontView *fv, int enc) {
 
     memset(&gd,0,sizeof(gd));
     gd.flags = gg_visible | gg_enabled;
-    helplist[0].invoke = BVMenuContextualHelp;
+//    helplist[0].invoke = BVMenuContextualHelp;
     gd.u.menu2 = mblist;
     bv->mb = GMenu2BarCreate( gw, &gd, NULL);
     GGadgetGetSize(bv->mb,&gsize);

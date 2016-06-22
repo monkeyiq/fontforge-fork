@@ -363,6 +363,7 @@ struct metricchar {
 };
 
 typedef struct metricsview {
+    CommonView m_commonView;
     struct fontview *fv;
     SplineFont *sf;
     int pixelsize;		/* If the user has manually requested a pixelsize */
@@ -698,14 +699,14 @@ struct kf_dlg /* : fvcontainer */ {
     FontView *second_fv;
 };
 
-enum genfam { gf_none, gf_macfamily, gf_ttc };
+enum genfam { gf_none, gf_macfamily, gf_ttc, gf_svg };
 
 extern void FVMarkHintsOutOfDate(SplineChar *sc);
 extern void FVRefreshChar(FontView *fv,int gid);
 extern void _FVMenuOpen(FontView *fv);
 extern int _FVMenuSave(FontView *fv);
 extern int _FVMenuSaveAs(FontView *fv);
-extern int _FVMenuGenerate(FontView *fv,int family);
+extern int _FVMenuGenerate(FontView *fv,int family,int layer /* -1 is use default */ );
 extern void _FVCloseWindows(FontView *fv);
 extern char *GetPostScriptFontName(char *defdir,int mult);
 extern void MergeKernInfo(SplineFont *sf,EncMap *map);
@@ -1565,5 +1566,9 @@ extern int CVNearLBearingLine( CharView* cv, real x, real fudge );
 extern void CVMenuConstrain(GWindow gw, struct gmenuitem *mi, GEvent *UNUSED(e));
 
 
+/**
+ * Cast to FontView if possible.
+ */
+FontView* tryCastGDataFontView( GWindow gw );
 
 #endif	/* _VIEWS_H */

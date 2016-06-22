@@ -2308,6 +2308,11 @@ return( 0 );
 	    formattypes[i].disabled = true;
 	formattypes[ff_ttc].disabled = false;
 	ofs = ff_ttc;
+    } else if ( family == gf_svg ) {
+	for ( i=0; i<=ff_none; ++i )
+	    formattypes[i].disabled = true;
+	formattypes[ff_svg].disabled = false;
+	ofs = ff_svg;
     }
     if ( !CanWoff())
 	formattypes[ff_woff].disabled = true;

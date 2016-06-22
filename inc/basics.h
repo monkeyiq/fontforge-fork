@@ -121,5 +121,8 @@ static inline int imax(int a, int b)
 			last = newitem;		       \
 		    }
 
+typedef struct gwindow *GWindow;
+typedef struct fontview FontView;
+typedef struct charview CharView;
 
 #endif

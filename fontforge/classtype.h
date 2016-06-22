@@ -1,4 +1,4 @@
-/* Copyright (C) 2000-2012 by George Williams */
+/* Copyright (C) 2016 by Ben Martin */
 /*
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -24,14 +24,34 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _FONTFORGEEXE_H
-#define _FONTFORGEEXE_H
+#ifndef _FF_CLASSTYPE_H
+#define _FF_CLASSTYPE_H
+
+#include "basics.h"
 
 
 
+/**
+ * Note that UNKNOWN is zero for a reason. If the new object is
+ * allocated with calloc then it is automatically of unknown type if
+ * the type is not explicitly set.
+ */
+typedef enum {
+    TYPE_UNKNOWN = 0,
+    TYPE_CHARVIEW = 1,
+    TYPE_FONTVIEW = 2,
+    TYPE_METRICSVIEW = 3
+} ViewType_t;
 
-extern FontView* FontViewFindUI( int (*testFunc)( FontViewBase*, void* udata ), void* udata );
+/**
+ * The type system is very simple. For a class to participate it
+ * *MUST* define a ClassType in it's struct as the *FIRST* entry in
+ * the struct.
+ */
+typedef struct {
+    ViewType_t m_type;
+} ClassType;
 
-void FVMenuMergeFonts(GWindow, struct gmenuitem *, GEvent *);
 
-#endif	/* _FONTFORGEEXE_H */
+
+#endif

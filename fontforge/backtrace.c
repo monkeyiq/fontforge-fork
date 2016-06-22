@@ -1,4 +1,4 @@
-/* Copyright (C) 2000-2012 by George Williams */
+/* Copyright (C) 2016 by Ben Martin */
 /*
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -24,14 +24,12 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _FONTFORGEEXE_H
-#define _FONTFORGEEXE_H
 
+#include "backtrace.h"
 
-
-
-extern FontView* FontViewFindUI( int (*testFunc)( FontViewBase*, void* udata ), void* udata );
-
-void FVMenuMergeFonts(GWindow, struct gmenuitem *, GEvent *);
-
-#endif	/* _FONTFORGEEXE_H */
+void BackTrace( const char* msg )
+{
+    printf("BACKTRACE: ");
+    printf(msg);
+    printf("\n");
+}

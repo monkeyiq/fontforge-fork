@@ -18716,6 +18716,9 @@ return;
     /* First check if it has a initScriptString in the persistent dictionary */
     /* (If we loaded from an sfd file) */
     obj = NULL;
+    if( !sf )
+	return;
+    
     if ( sf->python_persistent!=NULL && PyMapping_Check(sf->python_persistent) &&
 	 PyMapping_HasKeyString(sf->python_persistent,(char *)"initScriptString") &&
 	 (obj = PyMapping_GetItemString(sf->python_persistent,(char *)"initScriptString"))!=NULL &&

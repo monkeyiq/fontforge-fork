@@ -26,6 +26,7 @@
  */
 #include "fontforgeui.h"
 #include "collabclientui.h"
+#include "classtypeui.h"
 
 int palettes_docked=1;
 int rectelipse=0, polystar=0, regular_star=1;
@@ -272,7 +273,10 @@ static void CVMenuSpiroSet(GWindow gw,struct gmenuitem *mi,GEvent *e) {
 }
 
 void cvtoollist_check(GWindow gw,struct gmenuitem *mi,GEvent *e) {
-    CharView *cv = (CharView *) GDrawGetUserData(gw);
+    CharView* cv = tryObtainGDataCharView( gw );
+    if( !cv )
+	return;
+
     int order2 = cv->b.layerheads[cv->b.drawmode]->order2;
 
     for ( mi = mi->sub; mi->ti.text!=NULL || mi->ti.line ; ++mi ) {

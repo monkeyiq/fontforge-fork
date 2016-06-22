@@ -33,6 +33,15 @@
 #include <sys/time.h>
 #include <gkeysym.h>
 
+static int isURL( char* s ) 
+{
+    if( !strstr(s,"http://"))
+	return 1;
+    if( !strstr(s,"https://"))
+	return 1;
+    return 0;
+}
+
 extern GBox _ggadget_Default_Box;
 #define ACTIVE_BORDER   (_ggadget_Default_Box.active_border)
 #define MAIN_FOREGROUND (_ggadget_Default_Box.main_foreground)
@@ -222,6 +231,7 @@ void help(char *file) {
 }
 #else
 
+
 void help(char *file) {
     char fullspec[PATH_MAX], *temp, *pt;
 
@@ -232,7 +242,7 @@ void help(char *file) {
 return;
     }
 
-    if ( strstr(file,"http://")==NULL ) {
+    if ( !isURL(file)) {
 	memset(fullspec,0,sizeof(fullspec));
 	if ( ! GFileIsAbsolute(file) )
 	    snprintf(fullspec, PATH_MAX, "%s", getHelpDir());
