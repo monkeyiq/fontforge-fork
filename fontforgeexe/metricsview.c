@@ -2592,13 +2592,15 @@ static void sm_referenceShowDependentRefs(CommonView* self) {
     SCRefBy(mv->glyphs[i].sc);
 }
 
-static void MVMenuFindProblems(GWindow gw, struct gmenuitem *UNUSED(mi), GEvent *UNUSED(e)) {
-    MetricsView *mv = (MetricsView *) GDrawGetUserData(gw);
+static void sm_dialogFindProblems( CommonView* self )
+{
+    FontView*    fv = tryObtainCastFontView( self );
+    MetricsView* mv = tryObtainCastMetricsView( self );
     int i;
 
     for ( i=mv->glyphcnt-1; i>=0; --i )
         if ( mv->perchar[i].selected )
-    break;
+	    break;
     if ( i!=-1 )
         FindProblems(mv->fv, NULL, mv->glyphs[i].sc);
 }
@@ -2773,6 +2775,13 @@ static void sm_simplifyCleanup( CommonView* self ) {
     MetricsView* mv = tryObtainCastMetricsView( self );
     MVSimplify(mv, -1);
 }
+
+static void sm_dialogCompareLayers( CommonView* self ) {
+    FontView*    fv = tryObtainCastFontView( self );
+    MetricsView* mv = tryObtainCastMetricsView( self );
+    fv->b.m_commonView.m_sharedmenu_funcs.dialogCompareLayers((CommonView*)fv);
+}
+
 
 static void sm_extremaAdd( CommonView* self ) {
     FontView*    fv = tryObtainCastFontView( self );
@@ -2954,7 +2963,7 @@ static void MVMenuScale(GWindow gw,struct gmenuitem *mi, GEvent *UNUSED(e)) {
     _MVMenuScale(mv, mi->mid);
 }
 
-static void MVMenuInsertChar(GWindow gw, struct gmenuitem *mi, GEvent *UNUSED(e)) {
+void MVMenuInsertChar(GWindow gw, struct gmenuitem *mi, GEvent *UNUSED(e)) {
     MetricsView *mv = (MetricsView *) GDrawGetUserData(gw);
     SplineFont *sf = mv->sf;
     int i, j, pos = GotoChar(sf,mv->fv->b.map,NULL);
@@ -4707,6 +4716,30 @@ static void MetricsViewInit(void ) {
     atexit(&MetricsViewFinishNonStatic);
 }
 
+static int sm_getActiveLayer( CommonView* self )
+{
+    MetricsView* mv = tryObtainCastMetricsView( self );
+    return( mv->layer );
+}
+
+static int sm_getActiveSplineChar( CommonView* self )
+{
+    MetricsView* mv = tryObtainCastMetricsView( self );
+    SplineChar* sc = 0;
+    int i = 0;
+
+    for ( i=mv->glyphcnt-1; i>=0; --i )
+        if ( mv->perchar[i].selected )
+	    break;
+    if ( i==-1 )
+	sc = NULL;
+    else
+	sc = mv->glyphs[i].sc;
+
+    return sc;
+}
+
+
 MetricsView *MetricsViewCreate(FontView *fv,SplineChar *sc,BDFFont *bdf) {
     GRect pos;
     GWindow gw;
@@ -4782,6 +4815,9 @@ MetricsView *MetricsViewCreate(FontView *fv,SplineChar *sc,BDFFont *bdf) {
     //SETVTABLE(clearBackground,clearBackground);
     SETVTABLE(join,           join);
 
+    // sharedmenu_font
+    SETVTABLE(dialogFindProblems, dialogFindProblems);
+    
     SETVTABLE(setWidth,        setWidth);
     SETVTABLE(metricsCenter,   metricsCenter);
     SETVTABLE(kernPairCloseUp, kernPairCloseUp);
@@ -4829,7 +4865,7 @@ MetricsView *MetricsViewCreate(FontView *fv,SplineChar *sc,BDFFont *bdf) {
     //SETVTABLE(simplifyCanonicalStartPoint, simplifyCanonicalStartPoint);
     //SETVTABLE(simplifyCanonicalContours,   simplifyCanonicalContours);
     //SETVTABLE(dialogExpandStroke,      dialogExpandStroke);
-    //SETVTABLE(dialogCompareLayers,     dialogCompareLayers);
+    SETVTABLE(dialogCompareLayers,     dialogCompareLayers);
     SETVTABLE(extremaAdd,              extremaAdd);
 
     SETVTABLE(dialogCharInfo,          dialogCharInfo);
@@ -4877,7 +4913,9 @@ MetricsView *MetricsViewCreate(FontView *fv,SplineChar *sc,BDFFont *bdf) {
 
     
     // utility to unify some methods
-    /* SETVTABLE(getActiveLayer,  getActiveLayer); */
+    SETVTABLE(getActiveLayer,  getActiveLayer);
+    SETVTABLE(getActiveSplineChar, getActiveSplineChar);
+    
     /* SETVTABLE(selectionClear,  selectionClear); */
     /* SETVTABLE(selectionAddChar,selectionAddChar); */
     

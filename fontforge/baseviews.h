@@ -193,6 +193,10 @@ typedef struct sharedmenu_funcs
     // sharedmenu_edit_clearlist
     void (*clearBackground)( CommonView* self );
     void (*join)( CommonView* self );
+
+    // sharedmenu_font
+    void (*dialogFindProblems)( CommonView* self );
+    
     
     // select cv
     void (*selectFirstPoint)( CommonView* self );
@@ -315,7 +319,7 @@ typedef struct sharedmenu_funcs
     
     // utility to unify some methods
     int (*getActiveLayer)( CommonView* self );
-
+    SplineChar* (*getActiveSplineChar)( CommonView* self );
     void (*selectionClear)( CommonView* self );
     void (*selectionAddChar)( CommonView* self, struct splinechar *sc );
     

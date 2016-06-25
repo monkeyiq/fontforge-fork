@@ -6520,8 +6520,9 @@ static void CVMenuFontInfo(GWindow gw, struct gmenuitem *UNUSED(mi), GEvent *UNU
     FontInfo(cv->b.sc->parent,CVLayer((CharViewBase *) cv),-1,false);
 }
 
-static void CVMenuFindProblems(GWindow gw, struct gmenuitem *UNUSED(mi), GEvent *UNUSED(e)) {
-    CharView *cv = (CharView *) GDrawGetUserData(gw);
+static void sm_dialogFindProblems( CommonView* self )
+{
+    CharView* cv = tryObtainCastCharView( self );
     FindProblems(NULL,cv,NULL);
 }
 
@@ -10018,7 +10019,7 @@ return;
     CVCharChangedUpdate(&cv->b);
 }
 
-static void CVMenuSpiroMakeFirst(GWindow gw, struct gmenuitem *UNUSED(mi), GEvent *UNUSED(e)) {
+void CVMenuSpiroMakeFirst(GWindow gw, struct gmenuitem *UNUSED(mi), GEvent *UNUSED(e)) {
     CharView *cv = (CharView *) GDrawGetUserData(gw);
     _CVMenuSpiroMakeFirst(cv);
 }
@@ -10045,7 +10046,7 @@ void _CVMenuNamePoint(CharView *cv, SplinePoint *sp) {
     }
 }
 
-static void CVMenuNamePoint(GWindow gw, struct gmenuitem *UNUSED(mi), GEvent *UNUSED(e)) {
+void CVMenuNamePoint(GWindow gw, struct gmenuitem *UNUSED(mi), GEvent *UNUSED(e)) {
     CharView *cv = (CharView *) GDrawGetUserData(gw);
     SplinePointList *spl;
     SplinePoint *sp;
@@ -11540,6 +11541,12 @@ static int sm_getActiveLayer( CommonView* self )
     CharView* cv = tryObtainCastCharView( self );
     return( CVLayer((CharViewBase *) cv) );
 }
+static SplineChar* sm_getActiveSplineChar( CommonView* self )
+{
+    CharView* cv = tryObtainCastCharView( self );
+    return( cv->b.sc );
+}
+
 
 static void sm_kernPairCloseUp( CommonView* self )
 {
@@ -11630,7 +11637,10 @@ CharView *CharViewCreateExtended(SplineChar *sc, FontView *fv,int enc, int show 
     // sharedmenu_edit_clearlist  
     SETVTABLE(clearBackground,clearBackground);
     SETVTABLE(join,           join);
-    
+
+    // sharedmenu_font
+    SETVTABLE(dialogFindProblems, dialogFindProblems);
+
     SETVTABLE(setWidth,         setWidth);
     SETVTABLE(metricsCenter,    metricsCenter);
     SETVTABLE(kernPairCloseUp,  kernPairCloseUp);
@@ -11725,6 +11735,7 @@ CharView *CharViewCreateExtended(SplineChar *sc, FontView *fv,int enc, int show 
     
     // utility to unify some methods
     SETVTABLE(getActiveLayer,  getActiveLayer);
+    SETVTABLE(getActiveSplineChar, getActiveSplineChar);
     SETVTABLE(selectionClear,  selectionClear);
     SETVTABLE(selectionAddChar,selectionAddChar);
     

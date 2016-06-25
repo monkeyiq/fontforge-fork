@@ -134,6 +134,7 @@ enum {
     SMID_Deltas,
     SMID_OpenBitmap,
     SMID_OpenOutline,
+    SMID_RevertMenu,
     SMID_Revert,
     SMID_Recent,
     SMID_Print,
@@ -332,6 +333,7 @@ enum {
     SMID_ReplaceChar,    
 
     SMID_InsertCharA,
+    SMID_InsertCharB,
     SMID_ShowGrid,
     SMID_HideGrid,
     SMID_PartialGrid,
@@ -353,6 +355,14 @@ enum {
     SMID_SelectAll,
     SMID_SelectInvert,
     SMID_SelectNone,
+
+    SMID_DialogInline,
+    SMID_DialogOutline,
+    SMID_dialogShadow,
+    SMID_dialogWireframe,
+    SMID_GotoChar,
+    SMID_HintsMenu,
+    SMID_ReferencesMenu,
     
     SMID_Warnings = 3000
 };
