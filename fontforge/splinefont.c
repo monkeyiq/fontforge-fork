@@ -25,6 +25,9 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "autohint.h"
+#include "autotrace.h"
+#include "dumppfa.h"
 #include "fontforgevw.h"
 #include <utype.h>
 #include <ustring.h>
@@ -2153,7 +2156,7 @@ static void SPLFirstVisitorFoundSoughtXY(SplinePoint* splfirst, Spline* spline, 
     if( d->found )
 	return;
 
-    printf("SPLFirstVisitorFoundSoughtXY() %f %f %f\n", d->x, spline->from->me.x, spline->to->me.x );
+    // printf("SPLFirstVisitorFoundSoughtXY() %f %f %f\n", d->x, spline->from->me.x, spline->to->me.x );
     if( d->use_x )
     {
 	if( spline->from->me.x == d->x )

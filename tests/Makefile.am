@@ -149,13 +149,14 @@ EXTRA_DIST += helper107.pe helper118A.pe helper118B.pe		\
 	test114.pe test115.pe test116.pe test117.pe		\
 	test118.pe test119.pe test120.pe test121.pe		\
 	test122.pe test123.pe test124.pe test125.pe		\
-	test126.pe test127.pe test128.pe
+	test126.pe test127.pe test128.pe test129.pe
 
 # python test scripts
 EXTRA_DIST += findoverlapbugs.py test0001.py test0101.py	\
 	test1001.py test1001a.py test1001b.py test1001c.py	\
 	test1002.py test1003.py test1004.py test1005.py		\
-	test1006.py test1007.py test1008.py
+	test1006.py test1007.py test1008.py test926.py		\
+	test1009.py
 
 EXTRA_DIST += link_test.c randomtest.c build-aux/missing
 
@@ -172,6 +173,7 @@ GITIGNOREFILES = $(MAYBE_GENERATED_INPUTS)			\
 	fonts/merged.cff					\
 	fonts/MinionPro-Regular.otf				\
 	fonts/LucidaGrande.ttc					\
-	fonts/nuvo-medium-woff-demo.woff
+	fonts/nuvo-medium-woff-demo.woff			\
+	fetched-fonts/*
 
 -include $(top_srcdir)/git.mk

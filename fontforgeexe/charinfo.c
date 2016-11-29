@@ -26,6 +26,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "autowidth2.h"
+#include "cvundoes.h"
 #include "fontforgeui.h"
 #include <ustring.h>
 #include <math.h>
@@ -33,7 +35,6 @@
 #include <chardata.h>
 #include "ttf.h"		/* For MAC_DELETED_GLYPH_NAME */
 #include <gkeysym.h>
-#include "is_LIGATURE.h"
 #include "gutils/unicodelibinfo.h"
 
 extern int lookup_hideunused;
@@ -1691,7 +1692,7 @@ static char *LigDefaultStr(int uni, char *name, int alt_lig ) {
 	else if ( iscombining(alt[1]) && ( alt[2]=='\0' || iscombining(alt[2]))) {
 	    if ( alt_lig != -10 )	/* alt_lig = 10 => mac unicode decomp */
 		alt = NULL;		/* Otherwise, don't treat accented letters as ligatures */
-	} else if (! is_LIGATURE_or_VULGAR_FRACTION((unsigned int) uni) &&
+	} else if (! is_LIGATURE_or_VULGAR_FRACTION((uint32)(uni)) &&
 		uni!=0x152 && uni!=0x153 &&	/* oe ligature should not be standard */
 		uni!=0x132 && uni!=0x133 &&	/* nor ij */
 		(uni<0xfb2a || uni>0xfb4f) &&	/* Allow hebrew precomposed chars */
@@ -4573,7 +4574,7 @@ return;
 	tgcd[11].gd.flags = gg_enabled|gg_visible|gg_utf8_popup;
 	tgcd[11].gd.cid = CID_HorAccent;
 	tgcd[11].creator = GTextFieldCreate;
-	tgcd[11].gd.popup_msg = tgcd[9].gd.popup_msg;
+	tgcd[11].gd.popup_msg = tgcd[10].gd.popup_msg;
 	thvarray[16] = &tgcd[11];
 
 	tlabel[12].text = (unichar_t *) _("Guess");
@@ -4708,7 +4709,7 @@ return;
 	    vargcd[i][4].gd.pos.width = 60;
 	    vargcd[i][4].gd.cid = CID_ExtItalicCor+i*100;
 	    vargcd[i][4].creator = GTextFieldCreate;
-	    vargcd[i][4].gd.popup_msg = vargcd[i][4].gd.popup_msg;
+	    vargcd[i][4].gd.popup_msg = vargcd[i][3].gd.popup_msg;
 	    varhvarray[i][2][1] = &vargcd[i][4];
 
 	    vargcd[i][5].gd.flags = gg_enabled|gg_visible|gg_utf8_popup;

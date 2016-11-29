@@ -24,7 +24,10 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
+#ifndef FONTFORGE_TTF_H
+#define FONTFORGE_TTF_H
+
 #include "psfont.h"		/* for struct fddata */
 
 #define MAC_DELETED_GLYPH_NAME	"<Delete>"
@@ -805,7 +808,6 @@ extern void aat_dumpprop(struct alltabs *at, SplineFont *sf);
 extern void aat_dumpbsln(struct alltabs *at, SplineFont *sf);
 extern int LookupHasDefault(OTLookup *otl);
 extern int scriptsHaveDefault(struct scriptlanglist *sl);
-extern int FPSTisMacable(SplineFont *sf, FPST *fpst);
 extern uint32 MacFeatureToOTTag(int featureType,int featureSetting);
 extern int OTTagToMacFeature(uint32 tag, int *featureType,int *featureSetting);
 extern uint16 *props_array(SplineFont *sf,struct glyphinfo *gi);
@@ -832,7 +834,6 @@ extern int memushort(uint8 *data,int table_len, int offset);
 extern void memputshort(uint8 *data,int offset,uint16 val);
 extern int TTF__getcvtval(SplineFont *sf,int val);
 extern int TTF_getcvtval(SplineFont *sf,int val);
-extern void SCinitforinstrs(SplineChar *sc);
 extern int SSAddPoints(SplineSet *ss,int ptcnt,BasePoint *bp, char *flags);
 extern int Macable(SplineFont *sf, OTLookup *otl);
 
@@ -843,7 +844,6 @@ extern uint16 *ClassesFromNames(SplineFont *sf,char **classnames,int class_cnt,
 extern SplineChar **SFGlyphsFromNames(SplineFont *sf,char *names);
 
 
-extern void AnchorClassOrder(SplineFont *sf);
 extern SplineChar **EntryExitDecompose(SplineFont *sf,AnchorClass *ac,
 	struct glyphinfo *gi);
 extern void AnchorClassDecompose(SplineFont *sf,AnchorClass *_ac, int classcnt, int *subcnts,
@@ -931,3 +931,5 @@ extern struct otfname *FindAllLangEntries(FILE *ttf, struct ttfinfo *info, int i
 #define TeX_BigOpSpace5		CHR('B','O','S','5')
 
 extern void SFDummyUpCIDs(struct glyphinfo *gi,SplineFont *sf);
+
+#endif /* FONTFORGE_TTF_H */

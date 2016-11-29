@@ -25,14 +25,12 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define GTimer GTimer_GTK
-#define GList  GList_Glib
-#include <glib.h>
-#include <glib-object.h>
-#undef GTimer
-#undef GList
+#include "ffglib.h"
 
 #include <fontforge-config.h>
+#include "autosave.h"
+#include "bitmapchar.h"
+#include "clipnoui.h"
 #include "fontforgeui.h"
 #ifndef _NO_LIBUNICODENAMES
 #include <libunicodenames.h>	/* need to open a database when we start */

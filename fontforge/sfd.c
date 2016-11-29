@@ -24,6 +24,10 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "autohint.h"
+#include "bvedit.h"
+#include "cvimages.h"
+#include "cvundoes.h"
 #include "fontforge.h"
 #include "splinefont.h"
 #include "baseviews.h"
@@ -43,6 +47,7 @@
 
 #define GTimer GTimer_GTK
 #include <glib.h>
+#include <glib/gstdio.h>
 #undef GTimer
 
 
@@ -83,7 +88,7 @@ static const char *charset_names[] = {
     "custom",
     "iso8859-1", "iso8859-2", "iso8859-3", "iso8859-4", "iso8859-5",
     "iso8859-6", "iso8859-7", "iso8859-8", "iso8859-9", "iso8859-10",
-    "iso8859-11", "iso8859-13", "iso8859-14", "iso8859-15",
+    "iso8859-11", "iso8859-13", "iso8859-14", "iso8859-15", "iso8859-16",
     "koi8-r",
     "jis201",
     "win", "mac", "symbol", "zapfding", "adobestandard",
@@ -138,8 +143,6 @@ static void SFDDumpHintList(FILE *sfd,const char *key, StemInfo *h);
 static void SFDDumpDHintList( FILE *sfd,const char *key, DStemInfo *d );
 static StemInfo *SFDReadHints(FILE *sfd);
 static DStemInfo *SFDReadDHints( SplineFont *sf,FILE *sfd,int old );
-extern void ExtractHints(SplineChar *sc,void *hints,int docopy);
-extern void *UHintCopy(SplineChar *sc,int docopy);
 
 static int PeekMatch(FILE *stream, const char * target) {
   // This returns 1 if target matches the next characters in the stream.
@@ -4432,17 +4435,16 @@ static DeviceTable *SFDReadDeviceTable(FILE *sfd,DeviceTable *adjust) {
 return(NULL);
 	else
 	    ungetc(ch,sfd);
-	if ( adjust==NULL )
-	    adjust = chunkalloc(sizeof(DeviceTable));
 	getint(sfd,&first);
 	ch = nlgetc(sfd);		/* Should be '-' */
 	getint(sfd,&last);
 	len = last-first+1;
 	if ( len<=0 ) {
 	    IError( "Bad device table, invalid length.\n" );
-            free(adjust);
 return(NULL);
 	}
+	if ( adjust==NULL )
+	    adjust = chunkalloc(sizeof(DeviceTable));
 	adjust->first_pixel_size = first;
 	adjust->last_pixel_size = last;
 	adjust->corrections = malloc(len);
@@ -8810,6 +8812,8 @@ exit( 1 );
 	SFD_AssignLookups((SplineFont1 *) sf);
     if ( !d.hadtimes )
 	SFTimesFromFile(sf,sfd);
+    // Make a blank encoding if there are no characters so as to avoid crashes later.
+    if (sf->map == NULL) sf->map = EncMapNew(sf->glyphcnt,sf->glyphcnt,&custom);
 
     SFDFixupUndoRefs(sf);
 return( sf );
@@ -9044,7 +9048,7 @@ return( false );
 	if ( getname(asfd,tok)!=1 )
 return( false );
     }
-    if ( sf->map->enc!=newmap ) {
+    if ( sf->map!=NULL && sf->map->enc!=newmap ) {
 	EncMap *map = EncMapFromEncoding(sf,newmap);
 	EncMapFree(sf->map);
 	sf->map = map;

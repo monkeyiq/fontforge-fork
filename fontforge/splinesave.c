@@ -24,6 +24,8 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "autohint.h"
+#include "dumppfa.h"
 #include "fontforge.h"
 #include <stdio.h>
 #include <math.h>
@@ -2908,6 +2910,10 @@ static void RSC2PS2(GrowBuf *gb, SplineChar *base,SplineChar *rsc,
 	rsc->hconflicts = false; rsc->vconflicts = false;
     } else {
 	for ( r=rsc->layers[layer].refs; r!=NULL; r=r->next ) {
+	    /* Ensure hintmask on refs are set correctly */
+	    if (SCNeedsSubsPts(r->sc, ff_otf, layer))
+	        SCFigureHintMasks(r->sc, layer);
+
 	    if ( !r->justtranslated )
 	continue;
 	    if ( r->sc->hconflicts || r->sc->vconflicts ) {

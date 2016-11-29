@@ -1,5 +1,29 @@
-/* This file written by George Williams to provide a gateway to fontforge */
-/* it it a modification of Raph's bezctx_ps.c */
+/*
+Copyright: 2007 Raph Levien
+License: GPL-2+
+    bezctx_ps.c - ppedit - A pattern plate editor for Spiro splines.
+Copyright: 2007 George Williams
+    bezctx_ff.c - Provide a gateway into FontForge with added modification.
+Contributions: Yuri Chornoivan, Jonathan Hanna, Joe Da Silva, Reuben Thomas,
+    Frank Trampe
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301, USA.
+
+*/
+
 #include <basics.h>
 #include <stdio.h>
 
@@ -33,7 +57,7 @@ nancheck(bezctx_ff *bc) {
 static void bezctx_ff_moveto(bezctx *z, double x, double y, int is_open) {
     bezctx_ff *bc = (bezctx_ff *)z;
 
-    if ( !finite(x) || !finite(y)) {	/* Protection against NaNs */
+    if ( !isfinite(x) || !isfinite(y)) {	/* Protection against NaNs */
 	nancheck(bc);
 	x = y = 0;
     }
@@ -54,7 +78,7 @@ static void bezctx_ff_lineto(bezctx *z, double x, double y) {
     bezctx_ff *bc = (bezctx_ff *)z;
     SplinePoint *sp;
 
-    if ( !finite(x) || !finite(y)) {
+    if ( !isfinite(x) || !isfinite(y)) {
 	nancheck(bc);
 	x = y = 0;
     }
@@ -73,7 +97,7 @@ bezctx_ff_quadto(bezctx *z, double xm, double ym, double x3, double y3) {
     double x2, y2;
     SplinePoint *sp;
 
-    if ( !finite(xm) || !finite(ym) || !finite(x3) || !finite(y3)) {
+    if ( !isfinite(xm) || !isfinite(ym) || !isfinite(x3) || !isfinite(y3)) {
 	nancheck(bc);
 	xm = ym = x3 = y3 = 0;
     }
@@ -102,7 +126,7 @@ bezctx_ff_curveto(bezctx *z, double x1, double y1, double x2, double y2,
     bezctx_ff *bc = (bezctx_ff *)z;
     SplinePoint *sp;
 
-    if ( !finite(x1) || !finite(y1) || !finite(x2) || !finite(y2) || !finite(x3) || !finite(y3)) {
+    if ( !isfinite(x1) || !isfinite(y1) || !isfinite(x2) || !isfinite(y2) || !isfinite(x3) || !isfinite(y3)) {
 	nancheck(bc);
 	x1 = y1 = x2 = y2 = x3 = y3 = 0;
     }

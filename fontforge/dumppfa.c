@@ -24,6 +24,11 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+#include "dumppfa.h"
+
+#include "autohint.h"
+#include "bvedit.h"
 #include "fontforge.h"
 #include <stdio.h>
 #include <math.h>
@@ -1451,7 +1456,7 @@ static int dumpprivatestuff(void (*dumpchar)(int ch,void *data), void *data,
     int hasblue=0, hash=0, hasv=0, hasshift/*, hasxuid*/, hasbold, haslg;
     int isbold=false;
     int iscjk;
-    struct pschars *subrs, *chars;
+    struct pschars *subrs = NULL, *chars = NULL;
     const char *ND="def";
     MMSet *mm = (format==ff_mma || format==ff_mmb)? sf->mm : NULL;
     double bluescale;
@@ -2367,7 +2372,7 @@ static void dumptype0stuff(FILE *out,SplineFont *sf, EncMap *map) {
 
 static void dumpt1str(FILE *binary,uint8 *data, int len, int leniv) {
     if ( leniv==-1 )
-	fwrite(data,sizeof(1),len,binary);
+	fwrite(data,sizeof(uint8),len,binary);
     else
 	encodestrout((DumpChar) fputc,binary,data,len,leniv);
 }

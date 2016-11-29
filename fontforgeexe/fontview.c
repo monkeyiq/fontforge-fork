@@ -30,9 +30,18 @@
 #include "collabclientui.h"
 #include "collabclientpriv.h"
 
+#include "autosave.h"
+#include "autotrace.h"
+#include "autowidth.h"
+#include "autowidth2.h"
+#include "bitmapchar.h"
+#include "bvedit.h"
+#include "cvundoes.h"
+#include "dumppfa.h"
 #include "fontforgeui.h"
 #include "groups.h"
 #include "psfont.h"
+#include "scripting.h"
 #include <gfile.h>
 #include <gio.h>
 #include <gresedit.h>
@@ -1286,7 +1295,6 @@ static void sm_dialogStemsCounters(CommonView* self) {
 static void FVMenuSubSup(GWindow gw, struct gmenuitem *UNUSED(mi), GEvent *UNUSED(e)) {
     FontView* fv = tryObtainGDataFontView( gw );
     GlyphChangeDlg(fv,NULL,gc_subsuper);
-    /*AddSubSupDlg(fv);*/
 }
 
 
@@ -4400,16 +4408,16 @@ void FVMenuCollabStart(GWindow gw, struct gmenuitem *UNUSED(mi), GEvent *UNUSED(
     if( res )
     {
 	printf("res:%s\n", res );
-	strncpy( address, res, IPADDRESS_STRING_LENGTH_T );
-	HostPortUnpack( address, &port, port_default );
+	HostPortUnpack( res, &port, port_default );
 
-	printf("address:%s\n", address );
+	printf("address:%s\n", res );
 	printf("port:%d\n", port );
 
-	void* cc = collabclient_new( address, port );
+	void* cc = collabclient_new( res, port );
 	fv->b.collabClient = cc;
 	collabclient_sessionStart( cc, fv );
 	printf("connecting to server...sent the sfd for session start.\n");
+	free(res);
     }
 #endif
 }
@@ -6142,7 +6150,7 @@ static FontView *__FontViewCreate(SplineFont *sf) {
 	    if ( fv->b.nextsame==NULL ) { sf->map = fv->b.map; }
 	}
     }
-    fv->b.selected = calloc(fv->b.map->enccount,sizeof(char));
+    fv->b.selected = calloc((fv->b.map ? fv->b.map->enccount : 0), sizeof(char));
     fv->user_requested_magnify = -1;
     fv->magnify = (ps<=9)? 3 : (ps<20) ? 2 : 1;
     fv->cbw = (ps*fv->magnify)+1;

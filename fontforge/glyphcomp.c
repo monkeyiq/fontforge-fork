@@ -26,6 +26,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "bvedit.h"
+#include "cvundoes.h"
 #include "fontforgevw.h"
 #include "scriptfuncs.h"
 #include <math.h>

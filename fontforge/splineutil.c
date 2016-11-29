@@ -24,6 +24,8 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "cvundoes.h"
+#include "dumppfa.h"
 #include "fontforgevw.h"
 #include "encoding.h"
 #include <math.h>
@@ -4645,7 +4647,7 @@ int LineTangentToSplineThroughPt(Spline *s, BasePoint *pt, extended ts[4],
     Quartic quad;
     int i,j,k;
 
-    if ( !finite(pt->x) || !finite(pt->y) ) {
+    if ( !isfinite(pt->x) || !isfinite(pt->y) ) {
 	IError( "Non-finite arguments passed to LineTangentToSplineThroughPt");
 return( -1 );
     }

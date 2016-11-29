@@ -24,6 +24,9 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "autohint.h"
+#include "dumpbdf.h"
+#include "dumppfa.h"
 #include "fontforge.h"
 #include <math.h>
 #include <unistd.h>
@@ -3587,6 +3590,7 @@ static void dummyloca(struct alltabs *at) {
 }
 
 static void redohead(struct alltabs *at) {
+    if (at->headf) fclose(at->headf);
     at->headf = tmpfile();
 
     putlong(at->headf,at->head.version);

@@ -24,6 +24,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "cvundoes.h"
 #include "fontforge.h"
 #include "splinefont.h"
 #include <chardata.h>
@@ -4227,6 +4228,11 @@ return( -1 );
 	} else if ( enc<255 ) {
 	    /* This is erroneous as I understand SJIS */
 	    enc = badencoding(info);
+	} else if (enc >= 0xeaa5) {
+        /* Encoded value is outside SJIS range */
+        /* If this happens, it's likely that it's actually CP932 encoded */
+        /* Todo: Detect CP932 encoding earlier and apply that instead of SJIS */
+        enc = badencoding(info);
 	} else {
 	    int ch1 = enc>>8, ch2 = enc&0xff;
 	    if ( ch1 >= 129 && ch1<= 159 )
@@ -4243,7 +4249,7 @@ return( -1 );
 		--ch1;
 		ch2 -= 31;
 	    }
-	    if ( ch1<0x21 || ch2<0x21 || ch1>0x7f || ch2>0x7f )
+	    if ( ch1<0x21 || ch2<0x21 || ch1>0x7e || ch2>0x7e )
 		enc = badencoding(info);
 	    else
 		enc = unicode_from_jis208[(ch1-0x21)*94+(ch2-0x21)];
@@ -5814,7 +5820,7 @@ static SplineFont *SFFromTuple(SplineFont *basesf,struct variations *v,int tuple
     sf->glyphmax = sf->glyphcnt = basesf->glyphcnt;
     sf->glyphs = v->tuples[tuple].chars;
     sf->layers[ly_fore].order2 = sf->layers[ly_back].order2 = true;
-    for ( i=0; i<sf->glyphcnt; ++i ) if ( basesf->glyphs[i]!=NULL ) {
+    for ( i=0; i<sf->glyphcnt; ++i ) if ( basesf->glyphs[i]!=NULL && sf->glyphs[i]!=NULL ) {
 	SplineChar *sc = sf->glyphs[i];
 	sc->orig_pos = i;
 	sc->parent = sf;

@@ -24,6 +24,8 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "autohint.h"
+#include "dumppfa.h"
 #include "fontforge.h"
 #include "edgelist2.h"
 #include "stemdb.h"
@@ -4615,15 +4617,17 @@ static void MarkDStemCorner( struct glyphdata *gd,struct pointdata *pd ) {
     
     for ( i=0; i<pd->prevcnt && !has_stem; i++ ) {
 	stem = pd->prevstems[i];
+	hv = IsUnitHV( &stem->unit,true );
 	if ( !stem->toobig && (
-	    ( x_dir && ( hv = IsUnitHV( &stem->unit,true ) == 1 )) ||
+	    ( x_dir &&  hv == 1 ) ||
 	    ( !x_dir && hv == 2 )))
 	    has_stem = true;
     }
     for ( i=0; i<pd->nextcnt && !has_stem; i++ ) {
 	stem = pd->nextstems[i];
+	hv = IsUnitHV( &stem->unit,true );
 	if ( !stem->toobig && (
-	    ( x_dir && ( hv = IsUnitHV( &stem->unit,true ) == 1 )) ||
+	    ( x_dir &&  hv == 1 ) ||
 	    ( !x_dir && hv == 2 )))
 	    has_stem = true;
     }

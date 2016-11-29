@@ -24,6 +24,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "dumppfa.h"
 #include "fontforgeui.h"
 #include <ustring.h>
 #include <math.h>
@@ -1005,7 +1006,7 @@ static void EditStyleName(MMW *mmw,int index) {
 	    mn = ti->userdata;
 	}
 	if ( pt!=NULL ) {
-	    for ( i=0, ++pt; i<4 && (*pt!=']' || *pt!='\0'); ++i ) {
+	    for ( i=0, ++pt; i<4 && (*pt!=']' && *pt!='\0'); ++i ) {
 		axes[i] = u_strtod(pt,&end);
 		pt = end;
 	    }

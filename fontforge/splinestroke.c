@@ -24,6 +24,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "cvundoes.h"
 #include "fontforge.h"
 #include "splinefont.h"
 #include <math.h>
@@ -708,7 +709,7 @@ return;		/* Essentially colinear */ /* Won't be perfect because control points l
 	    p->needs_point_left = p->needs_point_right = false;
 	    p->left_hidden = bends_left;
 	    p->right_hidden = !bends_left;
-	    if ( rot.x<=fabs(diff_angle.x) ) {
+	    if ( rot.x<=diff_angle.x || (diff_angle.x <= -1 && rot.x <= -0.999999) ) { /* close enough */
 		p->right = done.right;
 		p->left = done.left;
 		p->needs_point_left = p->needs_point_right = true;
@@ -743,8 +744,15 @@ return;		/* Essentially colinear */ /* Won't be perfect because control points l
 	if ( was_neg!=0 && c->cur-was_neg<5 )
 	    c->all[was_neg].needs_point_left = c->all[was_neg].needs_point_right = false;
     }
-    if ( !atbreak )
-	c->all[c->cur++] = done;
+    if (!atbreak) {
+        if (c->cur >= c->max) {
+            int extras = 10;
+            c->all = realloc(c->all, (c->max+extras)*sizeof(StrokePoint));
+            memset(c->all+c->max, 0, extras*sizeof(StrokePoint));
+            c->max += extras;
+        }
+        c->all[c->cur++] = done;
+    }
 }
 
 static void FindSlope(StrokeContext *c,Spline *s, bigreal t, bigreal tdiff) {
@@ -857,7 +865,7 @@ static void HideStrokePointsCircle(StrokeContext *c) {
 		if ( dist1sq<400 )
 		    j -= (6-1);
 		else
-		    j -= .66667*sqrt(dist1sq)-1;
+		    j -= .5*sqrt(dist1sq)-1;
 		/* Minus 1 because we are going to add 1 anyway */
 	    }
 	}
@@ -3192,17 +3200,93 @@ return( ss );
 return( ss );
 }
 
+#if 0
+// If there are odd crashes, double-frees, or bad accesses dealing with strokes, try looking for duplicate points and contours.
+
+struct pointer_list_item;
+struct pointer_list_item {
+	void *item;
+	struct pointer_list_item *next;
+};
+void pointer_list_item_free_chain(struct pointer_list_item *start) {
+	struct pointer_list_item *curr = start;
+	struct pointer_list_item *next;
+	while (curr != NULL) {
+		next = curr->next;
+		free(curr);
+		curr = next;
+	}
+	return;
+}
+struct pointer_list_item *pointer_list_item_get(struct pointer_list_item *start, void *item) {
+	struct pointer_list_item *curr = start;
+	struct pointer_list_item *next;
+	while (curr != NULL) {
+		next = curr->next;
+		if (item == curr->item) return curr;
+		curr = next;
+	}
+	return NULL;
+}
+struct pointer_list_item *pointer_list_item_add(struct pointer_list_item *start, void *item) {
+	struct pointer_list_item *curr = calloc(1, sizeof(struct pointer_list_item));
+	curr->item = item;
+	curr->next = start;
+	return curr;
+}
+static int SplineSetFindDupes(SplineSet *contours) {
+	struct pointer_list_item *points = NULL;
+	struct pointer_list_item *paths = NULL;
+	SplineSet *contour_curr = contours;
+	int err = 0;
+	int path_cnt = 0;
+	int point_cnt = 0;
+	while (contour_curr != NULL) {
+		if (pointer_list_item_get(paths, contour_curr)) {
+			fprintf(stderr, "Duplicate path!\n");
+			err |= 1;
+		} else {
+			paths = pointer_list_item_add(paths, contour_curr);
+		}
+		SplinePoint *point_curr = contour_curr->first;
+		int point_local_cnt = 0;
+		while (point_curr != NULL) {
+			if (pointer_list_item_get(points, point_curr)) {
+				fprintf(stderr, "Duplicate point!\n");
+				err |= 1;
+			} else {
+				points = pointer_list_item_add(points, point_curr);
+			}
+			if (point_curr->next == NULL || point_curr->next->to == contour_curr->last) break;
+			point_curr = point_curr->next->to;
+		}
+		contour_curr = contour_curr->next;
+	}
+	pointer_list_item_free_chain(points);
+	pointer_list_item_free_chain(paths);
+	return err;
+}
+#endif // 0
+
 static SplineSet *SSRemoveBackForthLine(SplineSet *contours) {
     /* Similar to the above. If we have a stem which is exactly 2*radius wide */
     /*  then we will have a line running down the middle of the stem which */
     /*  encloses no area. Get rid of it. More complicated cases can occur (a */
     /*  plus sign where each stem is 2*radius, ... */
     SplineSet *prev, *next, *cur, *ret;
+		SplineSet *cur_tmp;
 
     prev = NULL;
     for ( cur=contours; cur!=NULL; cur=next ) {
 	next = cur->next;
-	ret = RemoveBackForthLine(cur);
+	// ret = RemoveBackForthLine(cur);
+	// In order to use SplineSetRemoveOverlap, we need to break the SplineSet down into paths.
+	// Otherwise, all of them get merged.
+	cur_tmp = calloc(1, sizeof(SplineSet));
+	cur_tmp->next = NULL;
+	cur_tmp->first = cur->first;
+	cur_tmp->last = cur->last;
+	ret = SplineSetRemoveOverlap(NULL, cur_tmp, over_remove);
 	if ( ret==NULL ) {
 	    if ( prev==NULL )
 		contours = next;
@@ -3634,7 +3718,7 @@ return( first );
 
 SplineSet *SplineSetStroke(SplineSet *ss,StrokeInfo *si, int order2) {
     StrokeContext c;
-    SplineSet *first, *last, *cur, *ret, *active, *anext;
+    SplineSet *first, *last, *cur, *ret, *active = NULL, *anext;
     SplinePoint *sp, *nsp;
     int n, max;
     bigreal d2, maxd2, len, maxlen;

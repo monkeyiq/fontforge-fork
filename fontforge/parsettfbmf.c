@@ -24,6 +24,8 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "bitmapchar.h"
+#include "bvedit.h"
 #include "fontforge.h"
 #include "chardata.h"
 #include "utype.h"
@@ -78,6 +80,9 @@ return;
 	big.vbearingX = 0;
 	big.vbearingY = 0;
 	big.vadvance = bdf->pixelsize;
+    /* Sometimes the index format (e.g. 2) already specifies the metrics */
+    /* Only use the provided metrics if it hasn't already been set */
+    if (metrics == NULL)
 	metrics = &big;
 	if ( imageformat==8 )
 	    /* pad = */ getc(ttf);

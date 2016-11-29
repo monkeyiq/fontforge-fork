@@ -26,6 +26,17 @@
  */
 /*			   Yet another interpreter			      */
 
+#include "autohint.h"
+#include "autotrace.h"
+#include "autowidth.h"
+#include "autowidth2.h"
+#include "bitmapchar.h"
+#include "bitmapcontrol.h"
+#include "bvedit.h"
+#include "cvexport.h"
+#include "cvimages.h"
+#include "cvundoes.h"
+#include "dumppfa.h"
 #include "fontforge.h"
 #include <gfile.h>
 #include <utype.h>
@@ -890,6 +901,69 @@ static void bisspace(Context *c) {
 	c->error = ce_badargtype;
 }
 
+static void bisligature(Context *c) {
+    const char *pt;
+    long ch;
+
+    c->return_val.type = v_int;
+    if ( c->a.vals[1].type==v_str ) {
+	pt = c->a.vals[1].u.sval;
+	ch = utf8_ildb(&pt);
+	c->return_val.u.ival = is_LIGATURE(ch)==0?1:0;
+    } else if ( c->a.vals[1].type==v_int || c->a.vals[1].type==v_unicode )
+	c->return_val.u.ival = is_LIGATURE(c->a.vals[1].u.ival)==0?1:0;
+    else
+	c->error = ce_badargtype;
+}
+
+static void bisvulgarfraction(Context *c) {
+    const char *pt;
+    long ch;
+
+    c->return_val.type = v_int;
+    if ( c->a.vals[1].type==v_str ) {
+	pt = c->a.vals[1].u.sval;
+	ch = utf8_ildb(&pt);
+	c->return_val.u.ival = is_VULGAR_FRACTION(ch)==0?1:0;
+    } else if ( c->a.vals[1].type==v_int || c->a.vals[1].type==v_unicode )
+	c->return_val.u.ival = is_VULGAR_FRACTION(c->a.vals[1].u.ival)==0?1:0;
+    else
+	c->error = ce_badargtype;
+}
+
+static void bisotherfraction(Context *c) {
+    const char *pt;
+    long ch;
+
+    c->return_val.type = v_int;
+    if ( c->a.vals[1].type==v_str ) {
+	pt = c->a.vals[1].u.sval;
+	ch = utf8_ildb(&pt);
+	c->return_val.u.ival = is_OTHER_FRACTION(ch)==0?1:0;
+    } else if ( c->a.vals[1].type==v_int || c->a.vals[1].type==v_unicode )
+	c->return_val.u.ival = is_OTHER_FRACTION(c->a.vals[1].u.ival)==0?1:0;
+    else
+	c->error = ce_badargtype;
+}
+
+
+static void bisfraction(Context *c) {
+    const char *pt;
+    long ch;
+
+    c->return_val.type = v_int;
+    if ( c->a.vals[1].type==v_str ) {
+	pt = c->a.vals[1].u.sval;
+	ch = utf8_ildb(&pt);
+	c->return_val.u.ival = (is_VULGAR_FRACTION(c->a.vals[1].u.ival)==0 || \
+				is_OTHER_FRACTION(ch)==0)?1:0;
+    } else if ( c->a.vals[1].type==v_int || c->a.vals[1].type==v_unicode )
+	c->return_val.u.ival = (is_VULGAR_FRACTION(c->a.vals[1].u.ival)==0 || \
+				is_OTHER_FRACTION(c->a.vals[1].u.ival)==0)?1:0;
+    else
+	c->error = ce_badargtype;
+}
+
 static void btoupper(Context *c) {
     char *pt; const char *ipt;
     long ch;
@@ -1197,6 +1271,7 @@ static void bUtf8(Context *c) {
 		return;
 	    } else if ( arr->vals[i].u.ival<0 || arr->vals[i].u.ival>0x10ffff ){
 		c->error = ce_badargtype;
+		free(temp);
 		return;
 	    }
 	    temp[i] = arr->vals[i].u.ival;
@@ -1310,7 +1385,7 @@ static void bIsNan(Context *c) {
 
 static void bIsFinite(Context *c) {
     c->return_val.type = v_int;
-    c->return_val.u.ival = finite( c->a.vals[1].u.fval );
+    c->return_val.u.ival = isfinite( c->a.vals[1].u.fval );
 }
 
 
@@ -1938,6 +2013,7 @@ static void bGenerateFamily(Context *c) {
 	    c->a.vals[3].type!=v_int ||
 	    c->a.vals[4].type!=v_arr ) {
 	c->error = ce_badargtype;
+	free(familysfs);
 	return;
     }
     bitmaptype = c->a.vals[2].u.sval;
@@ -2244,7 +2320,7 @@ static void bWritePfm(Context *c) {
 static void bExport(Context *c) {
     int format,i, gid ;
     BDFFont *bdf;
-    char *pt, *format_spec;
+    char *tmp, *pt, *format_spec;
     char buffer[20];
     char *t;
 
@@ -2258,7 +2334,7 @@ static void bExport(Context *c) {
     }
 
     t = script2utf8_copy(c->a.vals[1].u.sval);
-    pt = utf82def_copy(t); free(t);
+    tmp = pt = utf82def_copy(t); free(t);
     sprintf( buffer, "%%n_%%f.%.4s", pt);
     format_spec = buffer;
     if ( strrchr(pt,'.')!=NULL ) {
@@ -2292,6 +2368,7 @@ static void bExport(Context *c) {
 #endif
     if (( format>=4 && c->a.argc!=3 ) || (format<4 && c->a.argc==3 )) {
 	c->error = ce_wrongnumarg;
+	free(tmp);
 	return;
     }
     bdf=NULL;
@@ -2308,8 +2385,7 @@ static void bExport(Context *c) {
 	if ( c->curfv->selected[i] && (gid=c->curfv->map->map[i])!=-1 &&
 		SCWorthOutputting(c->curfv->sf->glyphs[gid]) )
 	    ScriptExport(c->curfv->sf,bdf,format,gid,format_spec,c->curfv->map);
-    if ( format_spec!=buffer )
-	free(format_spec);
+    free(tmp);
 }
 
 /* FontImage("Outputfilename",array of [pointsize,string][,width[,height]]) */
@@ -2481,21 +2557,21 @@ static void bCopyUnlinked(Context *c) {
 }
 
 static void bCopyWidth(Context *c) {
-    FVCopy(c->curfv,ut_width);
+    FVCopyWidth(c->curfv,ut_width);
 }
 
 static void bCopyVWidth(Context *c) {
     if ( c->curfv!=NULL && !c->curfv->sf->hasvmetrics )
 	ScriptError(c,"Vertical metrics not enabled in this font");
-    FVCopy(c->curfv,ut_vwidth);
+    FVCopyWidth(c->curfv,ut_vwidth);
 }
 
 static void bCopyLBearing(Context *c) {
-    FVCopy(c->curfv,ut_lbearing);
+    FVCopyWidth(c->curfv,ut_lbearing);
 }
 
 static void bCopyRBearing(Context *c) {
-    FVCopy(c->curfv,ut_rbearing);
+    FVCopyWidth(c->curfv,ut_rbearing);
 }
 
 static void bCopyAnchors(Context *c) {
@@ -3894,16 +3970,19 @@ static void bSetTeXParams(Context *c) {
 	    c->error = ce_wrongnumarg;
 	    return;
 	}
+	break;
       case 2:
 	if ( c->a.argc!=25 ) {
 	    c->error = ce_wrongnumarg;
 	    return;
 	}
+	break;
       case 3:
 	if ( c->a.argc!=16 ) {
 	    c->error = ce_wrongnumarg;
 	    return;
 	}
+	break;
       default:
 	ScriptError(c, "Bad value for first argument, must be 1,2 or 3");
       break;
@@ -5374,7 +5453,7 @@ static void bBuildAccented(Context *c) {
 }
 
 static void bAppendAccent(Context *c) {
-    int pos = ____NOPOSDATAGIVEN;	/* unicode char pos info, see #define for (uint32)(utype2[]) */
+    int pos = FF_UNICODE_NOPOSDATAGIVEN; /* unicode char pos info, see #define for (uint32)(utype2[]) */
     char *glyph_name = NULL;		/* unicode char name */
     int uni = -1;			/* unicode char value */
 
@@ -8142,6 +8221,119 @@ static void bclearSpecialData(Context *c) {
     if (c->curfv) SplineFontClearSpecial(c->curfv->sf);
 }
 
+/* Ligature & Fraction information based on current Unicode (builtin) chart. */
+/* Unicode chart seems to distinguish vulgar fractions from other fractions. */
+/* Cnt returns lookup table-size, Nxt returns next Unicode value from array, */
+/* Loc returns 'n' for table array[0..n..(Cnt-1)] pointer. Errors return -1. */
+static void bLigChartGetCnt(Context *c) {
+    c->return_val.type=v_int;
+    c->return_val.u.ival=LigatureCount();
+}
+
+static void bVulChartGetCnt(Context *c) {
+    c->return_val.type=v_int;
+    c->return_val.u.ival=VulgarFractionCount();
+}
+
+static void bOFracChartGetCnt(Context *c) {
+    c->return_val.type=v_int;
+    c->return_val.u.ival=OtherFractionCount();
+}
+
+static void bFracChartGetCnt(Context *c) {
+    c->return_val.type=v_int;
+    c->return_val.u.ival=FractionCount();
+}
+
+static void bLigChartGetNxt(Context *c) {
+    const char *pt;
+    long ch;
+
+    c->return_val.type = v_int;
+    if ( c->a.vals[1].type==v_str ) {
+	pt = c->a.vals[1].u.sval;
+	ch = utf8_ildb(&pt);
+	c->return_val.u.ival = Ligature_get_U(ch);
+    } else if ( c->a.vals[1].type==v_int || c->a.vals[1].type==v_unicode )
+	c->return_val.u.ival = Ligature_get_U(c->a.vals[1].u.ival);
+    else
+	c->error = ce_badargtype;
+}
+
+static void bVulChartGetNxt(Context *c) {
+    const char *pt;
+    long ch;
+
+    c->return_val.type = v_int;
+    if ( c->a.vals[1].type==v_str ) {
+	pt = c->a.vals[1].u.sval;
+	ch = utf8_ildb(&pt);
+	c->return_val.u.ival = VulgFrac_get_U(ch);
+    } else if ( c->a.vals[1].type==v_int || c->a.vals[1].type==v_unicode )
+	c->return_val.u.ival = VulgFrac_get_U(c->a.vals[1].u.ival);
+    else
+	c->error = ce_badargtype;
+}
+
+static void bOFracChartGetNxt(Context *c) {
+    const char *pt;
+    long ch;
+
+    c->return_val.type = v_int;
+    if ( c->a.vals[1].type==v_str ) {
+	pt = c->a.vals[1].u.sval;
+	ch = utf8_ildb(&pt);
+	c->return_val.u.ival = Fraction_get_U(ch);
+    } else if ( c->a.vals[1].type==v_int || c->a.vals[1].type==v_unicode )
+	c->return_val.u.ival = Fraction_get_U(c->a.vals[1].u.ival);
+    else
+	c->error = ce_badargtype;
+}
+
+static void bLigChartGetLoc(Context *c) {
+    const char *pt;
+    long ch;
+
+    c->return_val.type = v_int;
+    if ( c->a.vals[1].type==v_str ) {
+	pt = c->a.vals[1].u.sval;
+	ch = utf8_ildb(&pt);
+	c->return_val.u.ival = Ligature_find_N(ch);
+    } else if ( c->a.vals[1].type==v_int || c->a.vals[1].type==v_unicode )
+	c->return_val.u.ival = Ligature_find_N(c->a.vals[1].u.ival);
+    else
+	c->error = ce_badargtype;
+}
+
+static void bVulChartGetLoc(Context *c) {
+    const char *pt;
+    long ch;
+
+    c->return_val.type = v_int;
+    if ( c->a.vals[1].type==v_str ) {
+	pt = c->a.vals[1].u.sval;
+	ch = utf8_ildb(&pt);
+	c->return_val.u.ival = VulgFrac_find_N(ch);
+    } else if ( c->a.vals[1].type==v_int || c->a.vals[1].type==v_unicode )
+	c->return_val.u.ival = VulgFrac_find_N(c->a.vals[1].u.ival);
+    else
+	c->error = ce_badargtype;
+}
+
+static void bOFracChartGetLoc(Context *c) {
+    const char *pt;
+    long ch;
+
+    c->return_val.type = v_int;
+    if ( c->a.vals[1].type==v_str ) {
+	pt = c->a.vals[1].u.sval;
+	ch = utf8_ildb(&pt);
+	c->return_val.u.ival = Fraction_find_N(ch);
+    } else if ( c->a.vals[1].type==v_int || c->a.vals[1].type==v_unicode )
+	c->return_val.u.ival = Fraction_find_N(c->a.vals[1].u.ival);
+    else
+	c->error = ce_badargtype;
+}
 
 static struct builtins {
     const char *name;
@@ -8177,6 +8369,10 @@ static struct builtins {
     { "IsAlpha", bisalpha, 1,2,0 },
     { "IsAlNum", bisalnum, 1,2,0 },
     { "IsSpace", bisspace, 1,2,0 },
+    { "IsLigature", bisligature, 1,2,0 },
+    { "IsVulgarFraction", bisvulgarfraction, 1,2,0 },
+    { "IsOtherFraction", bisotherfraction, 1,2,0 },
+    { "IsFraction", bisfraction, 1,2,0 },
     { "ToUpper", btoupper, 1,2,0 },
     { "ToLower", btolower, 1,2,0 },
     { "ToMirror", btomirror, 1,2,0 },
@@ -8485,6 +8681,16 @@ static struct builtins {
     { "Validate", bValidate, 0,0,0 },
     { "DebugCrashFontForge", bDebugCrashFontForge, 0,0,0 },
     { "ClearSpecialData", bclearSpecialData, 0,1,0 },
+    { "ucLigChartGetCnt", bLigChartGetCnt, 1,1,0 },
+    { "ucVulChartGetCnt", bVulChartGetCnt, 1,1,0 },
+    { "ucOFracChartGetCnt", bOFracChartGetCnt, 1,1,0 },
+    { "ucFracChartGetCnt", bFracChartGetCnt, 1,1,0 },
+    { "ucLigChartGetNxt", bLigChartGetNxt, 1,2,0 },
+    { "ucVulChartGetNxt", bVulChartGetNxt, 1,2,0 },
+    { "ucOFracChartGetNxt", bOFracChartGetNxt, 1,2,0 },
+    { "ucLigChartGetLoc", bLigChartGetLoc, 1,2,0 },
+    { "ucVulChartGetLoc", bVulChartGetLoc, 1,2,0 },
+    { "ucOFracChartGetLoc", bOFracChartGetLoc, 1,2,0 },
     { NULL, 0, 0,0,0 }
 };
 
@@ -9346,6 +9552,7 @@ static void handlename(Context *c,Val *val) {
 		val->u.aval = malloc(sizeof(Array));
 		val->u.aval->argc = 10;
 		val->u.aval->vals = malloc((10+1)*sizeof(Val));
+		memset(&pfminfo,'\0',sizeof(pfminfo));
 		SFDefaultOS2Info(&pfminfo,sf,sf->fontname);
 		for ( cnt=0; cnt<10; ++cnt ) {
 		    val->u.aval->vals[cnt].type = v_int;
